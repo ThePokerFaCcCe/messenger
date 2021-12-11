@@ -18,6 +18,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1"
 ]
 
+AUTH_USER_MODEL = 'user.User'
 
 # Application definition
 
@@ -35,6 +36,10 @@ INSTALLED_APPS = [
     'rest_framework_nested',
     'drf_spectacular',
     'debug_toolbar',
+
+    'conversation',
+    'user',
+    'picturic',
 ]
 
 
