@@ -19,6 +19,7 @@ ALLOWED_HOSTS = [
 ]
 
 AUTH_USER_MODEL = 'user.User'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Application definition
 
