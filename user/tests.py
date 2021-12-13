@@ -6,13 +6,22 @@ from uuid import uuid4
 import time
 
 
-from user.models import User
+from user.models import User, VerifyCode
+
+
+def generate_email(domain="gmail.com") -> str:
+    """Create random email with uuid"""
+    return f'{uuid4()}@{domain}'
 
 
 def create_user(email=None, **kwargs) -> User:
-    email = f'{uuid4()}@gmail.com' if not email else email
-
+    email = generate_email() if not email else email
     return User.objects.create_user(email, **kwargs)
+
+
+def create_verifycode(email=None, **kwargs) -> VerifyCode:
+    email = generate_email() if not email else email
+    return VerifyCode.objects.create(email=email, **kwargs)
 
 
 class UserTest(TransactionTestCase):
@@ -49,7 +58,38 @@ class UserTest(TransactionTestCase):
     def test_is_online(self):
         user = create_user()
         user.set_online()
-        user.offline_after_sec = timedelta(seconds=2)
         self.assertEqual(user.is_online, True)
-        time.sleep(3)
+        user.offline_after = timedelta(seconds=1)
+        time.sleep(1.5)
         self.assertEqual(user.is_online, False)
+
+
+class VerifyCodeTest(TestCase):
+    """
+    test is_expired
+    """
+
+    def test_expire(self):
+        code = create_verifycode()
+        self.assertEqual(code.expires_at, code.created_at + code.expire_after)
+        self.assertEqual(code.is_expired, False)
+        self.assertIn(code, VerifyCode.objects.filter_unexpired())
+        self.assertNotIn(code, VerifyCode.objects.filter_expired())
+
+        VerifyCode.expire_after = timedelta(seconds=1)
+        time.sleep(1.5)
+
+        self.assertEqual(code.is_expired, True)
+        self.assertIn(code, VerifyCode.objects.filter_expired())
+        self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
+
+        VerifyCode.expire_after = timedelta(hours=2)
+
+        code = create_verifycode()
+        for i in range(VerifyCode.max_tries):
+            code.increase_tries()
+        code.save()
+
+        self.assertEqual(code.is_expired, True)
+        self.assertIn(code, VerifyCode.objects.filter_expired())
+        self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
