@@ -2,16 +2,20 @@ from django.contrib.auth.models import PermissionsMixin
 from django.conf import settings
 from django.core.mail import send_mail
 from django.core.validators import MaxLengthValidator, MinLengthValidator
-from django.db import models
+from django.db.models import F
 from django.db.models.base import Model
-from django.db.models.fields import BooleanField, DateTimeField, EmailField
+from django.db.models.expressions import ExpressionWrapper
+from django.db.models.fields import BooleanField, CharField, DateTimeField, EmailField, IntegerField, PositiveSmallIntegerField
 from django.db.models.manager import Manager
 from django.db import models
+from django.db.models.query import QuerySet
+from django.db.models.query_utils import Q
 from django.db.utils import ProgrammingError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
-from datetime import timedelta
 from django.utils import timezone
+from datetime import timedelta
+from random import randint
 
 from picturic.fields import PictureField
 from .validators import UsernameValidator
@@ -80,15 +84,15 @@ class UserManager(Manager):
 
 class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
     start_count_value = 10000000  # for AutoFieldStartCountMixin
-    offline_after_sec = timedelta(seconds=20)
+    offline_after = timedelta(seconds=20)
     """After this time from user's `last_seen`, user's `is_online` will return `False`"""
 
     objects = UserManager()
 
-    first_name = models.CharField(_('first name'), max_length=40)
-    last_name = models.CharField(_('last name'), max_length=40, null=True)
-    bio = models.CharField(_('Biography'), max_length=90, null=True)
-    username = models.CharField(
+    first_name = CharField(_('first name'), max_length=40)
+    last_name = CharField(_('last name'), max_length=40, null=True)
+    bio = CharField(_('Biography'), max_length=90, null=True)
+    username = CharField(
         _('username'),
         unique=True, null=True, max_length=60, db_index=True,
         help_text=_(('Username must start with English letters '
@@ -141,7 +145,7 @@ class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
     @property
     def is_online(self) -> bool:
         """Returns `False` if `20` seconds passed from `last_seen`"""
-        return ((timezone.now() - self.last_seen) < self.offline_after_sec)
+        return ((timezone.now() - self.last_seen) < self.offline_after)
 
     @property
     def is_anonymous(self):
@@ -183,3 +187,110 @@ class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+
+class VerifyCodeManager(Manager):
+
+    def annotate_expires_at(self) -> QuerySet:
+        """Return QuerySet object that contains `expires_at` field
+        for filtering"""
+        # https://stackoverflow.com/a/35658634/14034832
+        return self.get_queryset().annotate(
+            expires_at=ExpressionWrapper(
+                F('created_at') + self.model.expire_after,
+                output_field=DateTimeField()
+            )
+        )
+
+    def filter_unexpired(self) -> QuerySet:
+        """Return QuerySet object that contains only unexpired codes"""
+        return self.annotate_expires_at().filter(
+            expires_at__gt=timezone.now(),
+            _tries__lt=self.model.max_tries
+        )
+
+    def filter_expired(self) -> QuerySet:
+        """Return QuerySet object that contains only expired codes"""
+        return self.annotate_expires_at().filter(
+            Q(expires_at__lte=timezone.now()) |
+            Q(_tries__gte=self.model.max_tries)
+        )
+
+    def delete_expired(self) -> None:
+        """Delete expired codes"""
+        self.filter_expired().delete()
+
+
+class VerifyCode(Model):
+    def generate_code(*args, **kwargs) -> str:
+        """Returns 6-digit unique code"""
+        max_digit = 6
+        numbers = []
+
+        i = 0
+        while i < max_digit:
+            num = str(randint(0, 9))
+            if i != 0 and num == numbers[i-1]:
+                continue
+            numbers.append(num)
+            i += 1
+
+        return ''.join(numbers)
+
+    expire_after = timedelta(minutes=1)
+    max_tries = 3
+
+    _expires_at = None
+
+    objects = VerifyCodeManager()
+
+    code = CharField(_("Code"), max_length=6, auto_created=True,
+                     default=generate_code, editable=False, db_index=True)
+    email = EmailField(_("Email"), editable=False, db_index=True)
+    _tries = PositiveSmallIntegerField(default=0)
+    created_at = DateTimeField(_("Created at"), auto_now_add=True, editable=False)
+
+    @property
+    def expires_at(self) -> timezone:
+        if self._expires_at is None:
+            self._expires_at = self.created_at + self.expire_after
+        return self._expires_at
+
+    @expires_at.setter
+    def expires_at(self, value: timezone):
+        self._expires_at = value
+
+    @property
+    def is_expired(self) -> bool:
+        """Returns `True` if `expire_date` passed or `max_tries` exceeded"""
+        return (
+            ((timezone.now() - self.created_at) > self.expire_after)
+            or self._tries >= self.max_tries
+        )
+
+    @property
+    def tries(self) -> int:
+        return self._tries
+
+    def increase_tries(self, save: bool = False, **save_kwargs) -> int:
+        """Increase `tries` by 1 and return new `tries`
+
+        Parameters
+        ----------
+        `save : bool` Save new tries to database
+
+        `**save_kwargs` Kwargs that need to pass when calling `.save()`
+        """
+        self._tries += 1
+        if save:
+            self.save(**save_kwargs)
+
+        return self.tries
+
+    def clean(self):
+        super().clean()
+        self.email = self.email.lower()
+
+    def save(self, *args, **kwargs) -> None:
+        self.clean()
+        return super().save(*args, **kwargs)
