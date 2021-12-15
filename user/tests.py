@@ -1,10 +1,10 @@
 from datetime import timedelta
+from django.conf import settings
 from django.test.testcases import TransactionTestCase
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from uuid import uuid4
 import time
-
 
 from user.models import User, VerifyCode
 
@@ -101,3 +101,7 @@ class VerifyCodeTest(TransactionTestCase):
 
         self.assertTrue(code.check_code(code.code))
         self.assertNotEqual(code.code, code._code)
+
+        settings.VERIFYCODE_KEY = "Different key"
+        code._dec_code = 0
+        self.assertIsNone(code.code)

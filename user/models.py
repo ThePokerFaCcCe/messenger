@@ -1,3 +1,4 @@
+from typing import Optional
 from cryptography.fernet import InvalidToken
 from django.contrib.auth.models import PermissionsMixin
 from django.conf import settings
@@ -229,13 +230,14 @@ class VerifyCodeManager(Manager):
 
 
 class VerifyCode(Model):
+    max_digit = 6
+
     def generate_code(*args, **kwargs) -> str:
         """Returns 6-digit unique code"""
-        max_digit = 6
         numbers = []
 
         i = 0
-        while i < max_digit:
+        while i < VerifyCode.max_digit:
             num = randint(0, 9)
             if i != 0:
                 prev_num = numbers[i-1]
@@ -254,7 +256,7 @@ class VerifyCode(Model):
     max_tries = 3
 
     _expires_at = None
-    _dec_code = None
+    _dec_code = 0
 
     objects = VerifyCodeManager()
 
@@ -268,15 +270,16 @@ class VerifyCode(Model):
     user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE)
 
     @property
-    def code(self) -> str:
-        if self._dec_code is None:
+    def code(self) -> Optional[str]:
+        """Return decrypted code if key was correct, else None"""
+        if self._dec_code == 0:
             try:
                 self._dec_code = Crypto(settings.VERIFYCODE_KEY).decrypt_token(
                     self._code if isinstance(self._code, bytes)
                     else bytes(self._code, 'utf-8')
                 )
             except InvalidToken:
-                self._dec_code = self._code
+                self._dec_code = self._code if len(self._code) == self.max_digit else None
         return self._dec_code
 
     @property
