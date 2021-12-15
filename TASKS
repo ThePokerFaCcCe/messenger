@@ -1,0 +1,6 @@
+Create device model
+Create access model(Gives access token for user with device id)
+
+-Create user model
+-Create verifycode model
+-Add encryption for verifycode code field - 00/09/24
