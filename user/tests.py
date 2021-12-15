@@ -19,9 +19,11 @@ def create_user(email=None, **kwargs) -> User:
     return User.objects.create_user(email, **kwargs)
 
 
-def create_verifycode(email=None, **kwargs) -> VerifyCode:
-    email = generate_email() if not email else email
-    return VerifyCode.objects.create(email=email, **kwargs)
+def create_verifycode(user=None, **kwargs) -> VerifyCode:
+    user = create_user() if not user else user
+    code = VerifyCode.objects.create(user=user, **kwargs)
+    code.refresh_from_db()
+    return code
 
 
 class UserTest(TransactionTestCase):
@@ -64,7 +66,7 @@ class UserTest(TransactionTestCase):
         self.assertEqual(user.is_online, False)
 
 
-class VerifyCodeTest(TestCase):
+class VerifyCodeTest(TransactionTestCase):
     """
     test is_expired
     """
@@ -93,3 +95,9 @@ class VerifyCodeTest(TestCase):
         self.assertEqual(code.is_expired, True)
         self.assertIn(code, VerifyCode.objects.filter_expired())
         self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
+
+    def test_encryption(self):
+        code = create_verifycode()
+
+        self.assertTrue(code.check_code(code.code))
+        self.assertNotEqual(code.code, code._code)
