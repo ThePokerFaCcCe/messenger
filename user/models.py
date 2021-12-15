@@ -1,8 +1,11 @@
+from cryptography.fernet import InvalidToken
 from django.contrib.auth.models import PermissionsMixin
 from django.conf import settings
 from django.core.mail import send_mail
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db.models import F
+from django.db.models.deletion import CASCADE
+from django.db.models.fields.related import ForeignKey
 from django.db.models.base import Model
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import BooleanField, CharField, DateTimeField, EmailField, IntegerField, PositiveSmallIntegerField
@@ -14,6 +17,8 @@ from django.db.utils import ProgrammingError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.contrib.auth.hashers import make_password, check_password
+from encrypt_decrypt_fields import EncryptedBinaryField, Crypto
 from datetime import timedelta
 from random import randint
 
@@ -132,7 +137,7 @@ class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
 
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['first_name']
 
     class Meta:
         verbose_name = _('user')
@@ -182,6 +187,8 @@ class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
 
     def save(self, *args, **kwargs) -> None:
         self.clean()
+        if not (self.first_name and self.is_active):
+            self.first_name = "temp user"
         return super().save(*args, **kwargs)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
@@ -229,10 +236,16 @@ class VerifyCode(Model):
 
         i = 0
         while i < max_digit:
-            num = str(randint(0, 9))
-            if i != 0 and num == numbers[i-1]:
-                continue
-            numbers.append(num)
+            num = randint(0, 9)
+            if i != 0:
+                prev_num = numbers[i-1]
+                if any([
+                    str(num) == prev_num,
+                    num+1 == prev_num,
+                    num-1 == prev_num,
+                ]):
+                    continue
+            numbers.append(str(num))
             i += 1
 
         return ''.join(numbers)
@@ -241,14 +254,30 @@ class VerifyCode(Model):
     max_tries = 3
 
     _expires_at = None
+    _dec_code = None
 
     objects = VerifyCodeManager()
 
-    code = CharField(_("Code"), max_length=6, auto_created=True,
-                     default=generate_code, editable=False, db_index=True)
-    email = EmailField(_("Email"), editable=False, db_index=True)
+    _code = EncryptedBinaryField(verbose_name=_("Code"), auto_created=True,
+                                 key=settings.VERIFYCODE_KEY, editable=False,
+                                 default=generate_code, db_index=True)
+
     _tries = PositiveSmallIntegerField(default=0)
     created_at = DateTimeField(_("Created at"), auto_now_add=True, editable=False)
+
+    user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE)
+
+    @property
+    def code(self) -> str:
+        if self._dec_code is None:
+            try:
+                self._dec_code = Crypto(settings.VERIFYCODE_KEY).decrypt_token(
+                    self._code if isinstance(self._code, bytes)
+                    else bytes(self._code, 'utf-8')
+                )
+            except InvalidToken:
+                self._dec_code = self._code
+        return self._dec_code
 
     @property
     def expires_at(self) -> timezone:
@@ -287,10 +316,6 @@ class VerifyCode(Model):
 
         return self.tries
 
-    def clean(self):
-        super().clean()
-        self.email = self.email.lower()
-
-    def save(self, *args, **kwargs) -> None:
-        self.clean()
-        return super().save(*args, **kwargs)
+    def check_code(self, code) -> bool:
+        """Checks if entered code is same as encrypted code"""
+        return code == self.code
