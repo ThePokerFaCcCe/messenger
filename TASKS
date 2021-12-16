@@ -1,5 +1,26 @@
 Create device model
+test hashed filter and get
+
 Create access model(Gives access token for user with device id)
+
+Create verification view & send email
+Create device view
+Create access view
+Create user view
+
+Create conversation model
+Create conversation_type model(pv-gp-channel...)
+Create message model
+
+Add manytomany relation between conversation & message models
+
+Create seen model
+Add seen foreign key to message model
+
+Create conversation view
+Create message view
+Create seen view
+
 
 -Create user model
 -Create verifycode model
