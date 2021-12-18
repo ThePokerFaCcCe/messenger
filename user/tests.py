@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from uuid import uuid4
 import time
 
-from user.models import User, VerifyCode
+from user.models import Device, User, VerifyCode
 
 
 def generate_email(domain="gmail.com") -> str:
@@ -24,6 +24,12 @@ def create_verifycode(user=None, **kwargs) -> VerifyCode:
     code = VerifyCode.objects.create(user=user, **kwargs)
     code.refresh_from_db()
     return code
+
+
+def create_device(user=None, type=Device.TypeChoices.WINDOWS,
+                  model='10 Pro', **kwargs) -> Device:
+    user = create_user() if not user else user
+    return Device.objects.create(user=user, type=type, model=model, **kwargs)
 
 
 class UserTest(TransactionTestCase):
@@ -105,3 +111,24 @@ class VerifyCodeTest(TransactionTestCase):
         settings.VERIFYCODE_KEY = "Different key"
         code._dec_code = 0
         self.assertIsNone(code.code)
+
+
+class DeviceTest(TransactionTestCase):
+
+    def test_token_hashed(self):
+        device = create_device()
+        self.assertNotEqual(device._token_length, len(device.token))
+
+    def test_unhashed_token(self):
+        device = create_device()
+        self.assertIsNotNone(device.unhashed_token)
+        self.assertNotEqual(device.unhashed_token, device.token)
+
+    def test_find_token(self):
+        device = create_device()
+        self.assertEqual(device,
+                         Device.objects.find_token(device.unhashed_token))
+
+        device_2 = create_device()
+        self.assertNotEqual(device_2,
+                            Device.objects.find_token(device.unhashed_token))
