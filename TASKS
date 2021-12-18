@@ -1,12 +1,12 @@
-Create device model
-test hashed filter and get
-
 Create access model(Gives access token for user with device id)
 
 Create verification view & send email
 Create device view
 Create access view
 Create user view
+
+add access model's token to JWT or get it from db
+add middleware to set req.device & req.user from access token
 
 Create conversation model
 Create conversation_type model(pv-gp-channel...)
@@ -21,7 +21,8 @@ Create conversation view
 Create message view
 Create seen view
 
-
 -Create user model
 -Create verifycode model
 -Add encryption for verifycode code field - 00/09/24
+-Create device model
+-encrypt unhashed token & device id in string
