@@ -1,0 +1,144 @@
+from typing import Any, Optional
+from cryptography.fernet import InvalidToken
+from django.conf import settings
+from django.db.models import F
+from django.db.models.deletion import CASCADE
+from django.db.models.fields.related import ForeignKey
+from django.db.models.base import Model
+from django.db.models.expressions import ExpressionWrapper
+from django.db.models.fields import DateTimeField, PositiveSmallIntegerField
+from django.db.models.manager import Manager
+from django.db.models.query import QuerySet
+from django.db.models.query_utils import Q
+from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from encrypt_decrypt_fields import EncryptedBinaryField, Crypto
+from datetime import timedelta
+from random import randint
+
+
+class VerifyCodeManager(Manager):
+
+    def annotate_expires_at(self) -> QuerySet:
+        """Return QuerySet object that contains `expires_at` field
+        for filtering"""
+        # https://stackoverflow.com/a/35658634/14034832
+        return self.get_queryset().annotate(
+            expires_at=ExpressionWrapper(
+                F('created_at') + self.model.expire_after,
+                output_field=DateTimeField()
+            )
+        )
+
+    def filter_unexpired(self) -> QuerySet:
+        """Return QuerySet object that contains only unexpired codes"""
+        return self.annotate_expires_at().filter(
+            expires_at__gt=timezone.now(),
+            _tries__lt=self.model.max_tries
+        )
+
+    def filter_expired(self) -> QuerySet:
+        """Return QuerySet object that contains only expired codes"""
+        return self.annotate_expires_at().filter(
+            Q(expires_at__lte=timezone.now()) |
+            Q(_tries__gte=self.model.max_tries)
+        )
+
+    def delete_expired(self) -> None:
+        """Delete expired codes"""
+        self.filter_expired().delete()
+
+
+class VerifyCode(Model):
+    max_digit = 6
+
+    def generate_code(*args, **kwargs) -> str:
+        """Returns 6-digit unique code"""
+        numbers = []
+
+        i = 0
+        while i < VerifyCode.max_digit:
+            num = randint(0, 9)
+            if i != 0:
+                prev_num = numbers[i-1]
+                if any([
+                    str(num) == prev_num,
+                    num+1 == prev_num,
+                    num-1 == prev_num,
+                ]):
+                    continue
+            numbers.append(str(num))
+            i += 1
+
+        return ''.join(numbers)
+
+    expire_after = timedelta(minutes=1)
+    max_tries = 3
+
+    _expires_at = None
+    _dec_code = 0
+
+    objects = VerifyCodeManager()
+
+    _code = EncryptedBinaryField(verbose_name=_("Code"), auto_created=True,
+                                 key=settings.VERIFYCODE_KEY, editable=False,
+                                 default=generate_code, db_index=True)
+
+    _tries = PositiveSmallIntegerField(default=0)
+    created_at = DateTimeField(_("Created at"), auto_now_add=True, editable=False)
+
+    user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE)
+
+    @property
+    def code(self) -> Optional[str]:
+        """Return decrypted code if key was correct, else None"""
+        if self._dec_code == 0:
+            try:
+                self._dec_code = Crypto(settings.VERIFYCODE_KEY).decrypt_token(
+                    self._code if isinstance(self._code, bytes)
+                    else bytes(self._code, 'utf-8')
+                )
+            except InvalidToken:
+                self._dec_code = self._code if len(self._code) == self.max_digit else None
+        return self._dec_code
+
+    @property
+    def expires_at(self) -> timezone:
+        if self._expires_at is None:
+            self._expires_at = self.created_at + self.expire_after
+        return self._expires_at
+
+    @expires_at.setter
+    def expires_at(self, value: timezone):
+        self._expires_at = value
+
+    @property
+    def is_expired(self) -> bool:
+        """Returns `True` if `expire_date` passed or `max_tries` exceeded"""
+        return (
+            ((timezone.now() - self.created_at) > self.expire_after)
+            or self._tries >= self.max_tries
+        )
+
+    @property
+    def tries(self) -> int:
+        return self._tries
+
+    def increase_tries(self, save: bool = False, **save_kwargs) -> int:
+        """Increase `tries` by 1 and return new `tries`
+
+        Parameters
+        ----------
+        `save : bool` Save new tries to database
+
+        `**save_kwargs` Kwargs that need to pass when calling `.save()`
+        """
+        self._tries += 1
+        if save:
+            self.save(**save_kwargs)
+
+        return self.tries
+
+    def check_code(self, code) -> bool:
+        """Checks if entered code is same as encrypted code"""
+        return code == self.code
