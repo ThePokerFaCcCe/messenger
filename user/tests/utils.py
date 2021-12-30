@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from user.models import Device, User, VerifyCode
+from user.models.access import Access
 
 
 def generate_email(domain="gmail.com") -> str:
@@ -24,3 +25,9 @@ def create_device(user=None, type=Device.TypeChoices.WINDOWS,
                   model='10 Pro', **kwargs) -> Device:
     user = create_user() if not user else user
     return Device.objects.create(user=user, type=type, model=model, **kwargs)
+
+
+def create_access(user=None, device=None, **kwargs) -> Device:
+    user = create_user() if not user else user
+    device = create_device(user) if not device else device
+    return Access.objects.create(user=user, device=device, **kwargs)
