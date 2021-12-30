@@ -34,7 +34,7 @@ def decrypt_token_and_value(encrypt_key, encrypted_text: str
 
 
 def generate_token(instance=None, length=24, key=None, hasher: BasePasswordHasher = None):
-    """Return auto-generated hashed token and set `_unhashed_token` 
+    """Return auto-generated hashed token and set `_original_token` 
     to unhashed token in instance if `instance` is passed.
 
     Parameters
@@ -51,5 +51,5 @@ def generate_token(instance=None, length=24, key=None, hasher: BasePasswordHashe
     hashed_token = hash_token(token, hasher)
 
     if instance:
-        setattr(instance, "_unhashed_token", token)
+        setattr(instance, "_original_token", token)
     return hashed_token
