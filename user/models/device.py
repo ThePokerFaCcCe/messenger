@@ -23,4 +23,5 @@ class Device(BaseToken):
     model = CharField(_("Device model"), max_length=50)
     created_at = DateTimeField(auto_now_add=True)
 
-    user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE)
+    user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE,
+                      related_name="devices")
