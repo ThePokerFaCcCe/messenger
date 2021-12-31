@@ -6,7 +6,7 @@ from django.db.models import F
 from django.db.models.base import Model
 from django.db.models.fields import BooleanField, CharField, DateTimeField, EmailField
 from django.db.models.manager import Manager
-from django.db.utils import ProgrammingError
+from django.db.utils import OperationalError, ProgrammingError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
@@ -32,7 +32,7 @@ class AutoFieldStartCountMixin:
                 # And then if we create new objects,
                 # their ID will start from start_count_value
                 self.update_auto_increment()
-        except ProgrammingError:
+        except (ProgrammingError, OperationalError):
             pass
 
     def update_auto_increment(self):
@@ -76,6 +76,10 @@ class UserManager(Manager):
                          'ABCDEFGHJKLMNPQRSTUVWXYZ'
                          '23456789&*()_-!$%=^')
         return get_random_string(length, allowed_chars)
+
+    @classmethod
+    def normalize_email(cls, email: str) -> str:
+        return email.lower()
 
 
 class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
@@ -174,7 +178,7 @@ class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
 
     def clean(self):
         super().clean()
-        self.email = self.email.lower()
+        self.email = self.__class__.objects.normalize_email(self.email)
 
     def save(self, *args, **kwargs) -> None:
         self.clean()
