@@ -32,7 +32,7 @@ class AutoFieldStartCountMixin:
                 # And then if we create new objects,
                 # their ID will start from start_count_value
                 self.update_auto_increment()
-        except (ProgrammingError, OperationalError):
+        except (ProgrammingError, OperationalError) as e:
             pass
 
     def update_auto_increment(self):
@@ -83,7 +83,7 @@ class UserManager(Manager):
 
 
 class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
-    start_count_value = 10000000  # for AutoFieldStartCountMixin
+    # start_count_value = 1000000  # for AutoFieldStartCountMixin
     offline_after = timedelta(seconds=20)
     """After this time from user's `last_seen`, user's `is_online` will return `False`"""
 
