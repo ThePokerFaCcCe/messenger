@@ -1,52 +1,17 @@
 from typing import Any, Optional
 from cryptography.fernet import InvalidToken
 from django.conf import settings
-from django.db.models import F
 from django.db.models.deletion import CASCADE
 from django.db.models.fields.related import ForeignKey
 from django.db.models.base import Model
-from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import DateTimeField, PositiveSmallIntegerField
-from django.db.models.manager import Manager
-from django.db.models.query import QuerySet
-from django.db.models.query_utils import Q
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from encrypt_decrypt_fields import EncryptedBinaryField, Crypto
 from datetime import timedelta
 from random import randint
 
-
-class VerifyCodeManager(Manager):
-
-    def annotate_expires_at(self) -> QuerySet:
-        """Return QuerySet object that contains `expires_at` field
-        for filtering"""
-        # https://stackoverflow.com/a/35658634/14034832
-        return self.get_queryset().annotate(
-            expires_at=ExpressionWrapper(
-                F('created_at') + self.model.expire_after,
-                output_field=DateTimeField()
-            )
-        )
-
-    def filter_unexpired(self) -> QuerySet:
-        """Return QuerySet object that contains only unexpired codes"""
-        return self.annotate_expires_at().filter(
-            expires_at__gt=timezone.now(),
-            _tries__lt=self.model.max_tries
-        )
-
-    def filter_expired(self) -> QuerySet:
-        """Return QuerySet object that contains only expired codes"""
-        return self.annotate_expires_at().filter(
-            Q(expires_at__lte=timezone.now()) |
-            Q(_tries__gte=self.model.max_tries)
-        )
-
-    def delete_expired(self) -> None:
-        """Delete expired codes"""
-        self.filter_expired().delete()
+from user.models.manager import VerifyCodeManager
 
 
 class VerifyCode(Model):
@@ -60,9 +25,9 @@ class VerifyCode(Model):
         while i < VerifyCode.max_digit:
             num = randint(0, 9)
             if i != 0:
-                prev_num = numbers[i-1]
+                prev_num = int(numbers[i-1])
                 if any([
-                    str(num) == prev_num,
+                    num == prev_num,
                     num+1 == prev_num,
                     num-1 == prev_num,
                 ]):
