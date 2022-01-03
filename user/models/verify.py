@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db.models.deletion import CASCADE
 from django.db.models.fields.related import ForeignKey
 from django.db.models.base import Model
-from django.db.models.fields import DateTimeField, PositiveSmallIntegerField
+from django.db.models.fields import BooleanField, DateTimeField, PositiveSmallIntegerField
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from encrypt_decrypt_fields import EncryptedBinaryField, Crypto
@@ -51,6 +51,8 @@ class VerifyCode(Model):
                                  default=generate_code, db_index=True)
 
     _tries = PositiveSmallIntegerField(default=0)
+    is_used = BooleanField(default=False, db_index=True)
+
     created_at = DateTimeField(_("Created at"), auto_now_add=True, editable=False)
 
     user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE,
@@ -83,7 +85,8 @@ class VerifyCode(Model):
     def is_expired(self) -> bool:
         """Returns `True` if `expire_date` passed or `max_tries` exceeded"""
         return (
-            ((timezone.now() - self.created_at) > self.expire_after)
+            self.is_used
+            or (timezone.now() - self.created_at) > self.expire_after
             or self._tries >= self.max_tries
         )
 
