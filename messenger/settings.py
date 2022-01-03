@@ -11,6 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("SECRET_KEY")
 VERIFYCODE_KEY = config("VERIFYCODE_KEY")
+VERIFYCODETOKEN_KEY = config("VERIFYCODETOKEN_KEY")
 DEVICETOKEN_KEY = config("DEVICETOKEN_KEY")
 ACCESSTOKEN_KEY = config('ACCESSTOKEN_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
