@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from django.db.models.base import Model
 from abc import ABC, abstractmethod
 
@@ -19,19 +20,25 @@ class TokenTest(ABC):
         return self.model
 
     def test_token_hashed(self):
-        instance = self.__create_instance()
-        self.assertNotEqual(instance._token_length, len(instance.token))
+        with patch.object(self.__model, 'should_generate_token',
+                          return_value=True):
+            instance = self.__create_instance()
+            self.assertNotEqual(instance._token_length, len(instance.token))
 
     def test_encrypted_token(self):
-        instance = self.__create_instance()
-        self.assertIsNotNone(instance.encrypted_token)
-        self.assertNotEqual(instance.encrypted_token, instance.token)
+        with patch.object(self.__model, 'should_generate_token',
+                          return_value=True):
+            instance = self.__create_instance()
+            self.assertIsNotNone(instance.encrypted_token)
+            self.assertNotEqual(instance.encrypted_token, instance.token)
 
     def test_find_token(self):
-        instance = self.__create_instance()
-        self.assertEqual(instance,
-                         self.__model.objects.find_token(instance.encrypted_token))
+        with patch.object(self.__model, 'should_generate_token',
+                          return_value=True):
+            instance = self.__create_instance()
+            self.assertEqual(instance,
+                             self.__model.objects.find_token(instance.encrypted_token))
 
-        instance_2 = self.__create_instance()
-        self.assertNotEqual(instance_2,
-                            self.__model.objects.find_token(instance.encrypted_token))
+            instance_2 = self.__create_instance()
+            self.assertNotEqual(instance_2,
+                                self.__model.objects.find_token(instance.encrypted_token))
