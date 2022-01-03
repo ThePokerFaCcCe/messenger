@@ -11,10 +11,14 @@ from encrypt_decrypt_fields import EncryptedBinaryField, Crypto
 from datetime import timedelta
 from random import randint
 
+from user.models.base import BaseToken
 from user.models.manager import VerifyCodeManager
 
 
-class VerifyCode(Model):
+class VerifyCode(BaseToken, Model):
+    _token_length = 42
+    _encrypt_key = settings.VERIFYCODETOKEN_KEY
+
     max_digit = 6
     validation_regex = r'^(\d)*$'
 
@@ -112,6 +116,9 @@ class VerifyCode(Model):
     def check_code(self, code) -> bool:
         """Checks if entered code is same as encrypted code"""
         return code == self.code
+
+    def should_add_token(self) -> bool:
+        return self.is_used
 
     def email_code(self):
         self.user.email_user('Login code', f"Your login code is {self.code}")
