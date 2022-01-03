@@ -6,9 +6,14 @@ from django.test.testcases import TransactionTestCase
 
 from user.models import VerifyCode
 from .utils import create_verifycode
+from .mixins import TokenTest
 
 
-class VerifyCodeTest(TransactionTestCase):
+class VerifyCodeTest(TokenTest, TransactionTestCase):
+    model = VerifyCode
+
+    def create_instance(self):
+        return create_verifycode()
 
     def test_not_expired_by_default(self):
         code = create_verifycode()
@@ -59,3 +64,14 @@ class VerifyCodeTest(TransactionTestCase):
         settings.VERIFYCODE_KEY = "Different key"
         code._dec_code = 0
         self.assertIsNone(code.code)
+
+    def test_token_not_added_by_default(self):
+        code = create_verifycode()
+        self.assertIsNone(code.encrypted_token)
+
+    def test_token_added_after_is_used_true(self):
+        code = create_verifycode()
+        code.is_used = True
+        code.save()
+
+        self.assertIsNotNone(code.encrypted_token)
