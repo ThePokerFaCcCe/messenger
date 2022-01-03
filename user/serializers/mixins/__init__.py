@@ -1,0 +1,1 @@
+from .normalize_email_mixin import NormalizeEmailSerializerMixin
