@@ -117,7 +117,7 @@ class VerifyCode(BaseToken, Model):
         """Checks if entered code is same as encrypted code"""
         return code == self.code
 
-    def should_add_token(self) -> bool:
+    def should_generate_token(self) -> bool:
         return self.is_used
 
     def email_code(self):
