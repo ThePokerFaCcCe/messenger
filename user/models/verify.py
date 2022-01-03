@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db.models.deletion import CASCADE
 from django.db.models.fields.related import ForeignKey
 from django.db.models.base import Model
-from django.db.models.fields import BooleanField, DateTimeField, PositiveSmallIntegerField
+from django.db.models.fields import BooleanField, DateTimeField, EmailField, PositiveSmallIntegerField
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from encrypt_decrypt_fields import EncryptedBinaryField, Crypto
@@ -80,6 +80,10 @@ class VerifyCode(BaseToken, Model):
         if self._expires_at is None:
             self._expires_at = self.created_at + self.expire_after
         return self._expires_at
+
+    @property
+    def email(self) -> EmailField:
+        return self.user.email
 
     @expires_at.setter
     def expires_at(self, value: timezone):
