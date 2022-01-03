@@ -82,8 +82,8 @@ class UserManager(Manager):
         return email.lower()
 
 
-class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
-    # start_count_value = 1000000  # for AutoFieldStartCountMixin
+class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
+    start_count_value = 0  # 1000000  # for AutoFieldStartCountMixin
     offline_after = timedelta(seconds=20)
     """After this time from user's `last_seen`, user's `is_online` will return `False`"""
 
@@ -188,4 +188,5 @@ class User(AutoFieldStartCountMixin, PermissionsMixin, Model):
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
-        send_mail(subject, message, from_email, [self.email], **kwargs)
+        email = getattr(self, self.EMAIL_FIELD)
+        send_mail(subject, message, from_email, [email], **kwargs)
