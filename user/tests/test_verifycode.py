@@ -1,5 +1,6 @@
 import time
 from datetime import timedelta
+from unittest.mock import patch
 from django.conf import settings
 from django.test.testcases import TransactionTestCase
 
@@ -8,34 +9,46 @@ from .utils import create_verifycode
 
 
 class VerifyCodeTest(TransactionTestCase):
-    """
-    test is_expired
-    """
 
-    def test_expire(self):
+    def test_not_expired_by_default(self):
         code = create_verifycode()
         self.assertEqual(code.expires_at, code.created_at + code.expire_after)
         self.assertEqual(code.is_expired, False)
         self.assertIn(code, VerifyCode.objects.filter_unexpired())
         self.assertNotIn(code, VerifyCode.objects.filter_expired())
 
-        VerifyCode.expire_after = timedelta(seconds=1)
-        time.sleep(1.5)
+    def test_expire_by_date(self):
+        with patch.object(VerifyCode, 'expire_after',
+                          new=timedelta(seconds=1)):
+            code = create_verifycode()
+            time.sleep(1.5)
 
-        self.assertEqual(code.is_expired, True)
-        self.assertIn(code, VerifyCode.objects.filter_expired())
-        self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
+            self.assertEqual(code.is_expired, True)
+            self.assertIn(code, VerifyCode.objects.filter_expired())
+            self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
 
-        VerifyCode.expire_after = timedelta(hours=2)
+    def test_expire_by_tries(self):
+        with patch.object(VerifyCode, 'expire_after',
+                          new=timedelta(hours=2)):
+            code = create_verifycode()
+            for i in range(VerifyCode.max_tries):
+                code.increase_tries()
+            code.save()
 
-        code = create_verifycode()
-        for i in range(VerifyCode.max_tries):
-            code.increase_tries()
-        code.save()
+            self.assertEqual(code.is_expired, True)
+            self.assertIn(code, VerifyCode.objects.filter_expired())
+            self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
 
-        self.assertEqual(code.is_expired, True)
-        self.assertIn(code, VerifyCode.objects.filter_expired())
-        self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
+    def test_expire_by_is_used(self):
+        with patch.object(VerifyCode, 'expire_after',
+                          new=timedelta(hours=2)):
+            code = create_verifycode()
+            code.is_used = True
+            code.save()
+
+            self.assertEqual(code.is_expired, True)
+            self.assertIn(code, VerifyCode.objects.filter_expired())
+            self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
 
     def test_encryption(self):
         code = create_verifycode()
