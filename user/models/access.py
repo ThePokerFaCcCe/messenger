@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
 
-from user.models.base.token import BaseToken
+from user.models.base import BaseToken
 from user.models.device import Device
 
 

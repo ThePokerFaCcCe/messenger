@@ -5,7 +5,7 @@ from django.db.models.fields import CharField, DateTimeField
 from django.db.models.enums import TextChoices
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.hashers import BasePasswordHasher, PBKDF2PasswordHasher
-from user.models.base.token import BaseToken
+from user.models.base import BaseToken
 
 
 class Device(BaseToken):
