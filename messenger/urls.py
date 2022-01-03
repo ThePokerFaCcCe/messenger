@@ -4,7 +4,7 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
-
+    path('user/', include("user.urls"))
 ]\
     + [  # Docs & Schema
         path("api/v1/schema/", SpectacularAPIView.as_view(), name='schema'),

@@ -1,6 +1,3 @@
-Create access model(Gives access token for user with device id)
-
-Create verification view & send email
 Create device view
 Create access view
 Create user view
@@ -22,7 +19,17 @@ Create message view
 Create seen view
 
 -Create user model
+
 -Create verifycode model
 -Add encryption for verifycode code field - 00/09/24
+
 -Create device model
 -encrypt unhashed token & device id in string
+
+-Create access model(Gives access token for user with device id)
+
+-Create verification view & send email
+(**BUG**: _NOT FIXED_
+if email starts with "re", "re" will be removed from email while creating user.
+e.g "reza@gmail.com" will convert to "za@gmail.com" and then save to database
+)
