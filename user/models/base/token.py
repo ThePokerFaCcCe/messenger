@@ -32,7 +32,7 @@ class BaseToken(models.Model):
 
     objects = EncryptedTokenManager()
 
-    token = models.CharField(db_index=True, max_length=128, editable=False,
+    token = models.CharField(db_index=True, max_length=128, null=True,
                              verbose_name=_("Token"), auto_created=True)
 
     @property
@@ -41,12 +41,16 @@ class BaseToken(models.Model):
         when model is just created. otherwise return `None`"""
         return self._encrypted_token
 
+    def should_generate_token(self) -> bool:
+        """when return `True`, new token will be generated"""
+        return not bool(self.token)
+
     def save(self, *args, **kwargs):
-        editing = bool(self.token)
-        if not editing:
+        add_token = self.should_generate_token()
+        if add_token:
             self.token = generate_token(instance=self)
         super().save(*args, **kwargs)
-        if not editing:
+        if add_token:
             self.__encrypt_original_token()
 
     def __encrypt_original_token(self):
