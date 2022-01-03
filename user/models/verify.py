@@ -82,7 +82,7 @@ class VerifyCode(BaseToken, Model):
         return self._expires_at
 
     @property
-    def email(self) -> EmailField:
+    def email(self) -> str:
         return self.user.email
 
     @expires_at.setter
