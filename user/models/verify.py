@@ -16,6 +16,7 @@ from user.models.manager import VerifyCodeManager
 
 class VerifyCode(Model):
     max_digit = 6
+    validation_regex = r'^(\d)*$'
 
     def generate_code(*args, **kwargs) -> str:
         """Returns 6-digit unique code"""
@@ -52,7 +53,8 @@ class VerifyCode(Model):
     _tries = PositiveSmallIntegerField(default=0)
     created_at = DateTimeField(_("Created at"), auto_now_add=True, editable=False)
 
-    user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE)
+    user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE,
+                      related_name='verify_codes')
 
     @property
     def code(self) -> Optional[str]:
@@ -107,3 +109,6 @@ class VerifyCode(Model):
     def check_code(self, code) -> bool:
         """Checks if entered code is same as encrypted code"""
         return code == self.code
+
+    def email_code(self):
+        self.user.email_user('Login code', f"Your login code is {self.code}")
