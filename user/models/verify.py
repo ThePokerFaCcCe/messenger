@@ -20,7 +20,13 @@ class VerifyCode(BaseToken, Model):
     _encrypt_key = settings.VERIFYCODETOKEN_KEY
 
     max_digit = 6
+    """Max digits for generating code"""
+
     validation_regex = r'^(\d)*$'
+    """Regex for validating sent code by user"""
+
+    find_code_regex = r'\d{6}'
+    """Regex for finding code in email text (used for tests)"""
 
     def generate_code(*args, **kwargs) -> str:
         """Returns 6-digit unique code"""
