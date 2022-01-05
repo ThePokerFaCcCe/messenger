@@ -28,8 +28,9 @@ Create seen view
 
 -Create access model(Gives access token for user with device id)
 
--Create verification view & send email
+-Create verification view & send email - 00/10/14
 (**BUG**: _NOT FIXED_
 if email starts with "re", "re" will be removed from email while creating user.
 e.g "reza@gmail.com" will convert to "za@gmail.com" and then save to database
 )
+-add verifycode view tests
