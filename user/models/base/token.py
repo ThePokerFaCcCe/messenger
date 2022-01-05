@@ -34,6 +34,8 @@ class BaseToken(models.Model):
 
     token = models.CharField(db_index=True, max_length=128, null=True,
                              verbose_name=_("Token"), auto_created=True)
+    is_token_expired = models.BooleanField(default=False,
+                                           help_text=_("Token is expired or not"))
 
     @property
     def encrypted_token(self) -> Optional[str]:
