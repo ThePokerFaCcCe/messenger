@@ -9,6 +9,13 @@ from user.models.utils.token import decrypt_token_and_value
 
 class EncryptedTokenManager(Manager):
     def find_token(self, encrypted_token) -> Optional[Model]:
+        """Find object by encrypted token that contains
+        pk and unencrypted token"""
+
+        if encrypted_token is None:
+            return None
+
+        encrypted_token = str(encrypted_token)
         key = getattr(self.model, '_encrypt_key', None)
         assert key is not None, "You must set `_encrypt_key` attr in your model"
 
