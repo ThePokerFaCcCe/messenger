@@ -3,3 +3,5 @@ from .verify_code_serializers import (CheckVerifyCodeSerializer,
                                       TokenVerifyCodeSerializer)
 from .device_serializers import (DeviceCreateSerializer,
                                  DeviceInfoSerializer)
+from .access_serializers import (AccessCreateSerializer,
+                                 AccessInfoSerializer)
