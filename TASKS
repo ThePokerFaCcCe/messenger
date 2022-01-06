@@ -1,4 +1,3 @@
-Create device view
 Create access view
 Create user view
 
@@ -34,3 +33,5 @@ if email starts with "re", "re" will be removed from email while creating user.
 e.g "reza@gmail.com" will convert to "za@gmail.com" and then save to database
 )
 -add verifycode view tests
+
+-Create device view
