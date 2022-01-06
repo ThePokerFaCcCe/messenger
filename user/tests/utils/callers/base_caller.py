@@ -17,6 +17,6 @@ class BaseCaller:
 
         res_status = res.status_code
         assert res_status == allowed_status, (
-            f'{res_status} != {allowed_status}'
+            f'{res_status} != {allowed_status}\n{res.data}'
         )
         return res
