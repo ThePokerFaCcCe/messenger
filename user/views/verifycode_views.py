@@ -58,7 +58,8 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     @action(detail=False, methods=['post'])
     def check(self, request, *args, **kwargs):
         """Check entered `code` for `email`,
-        if data was correct, `token` will return,
+        if data was correct, user will be active 
+        and `token` will return, 
         that can be used for creating device"""
 
         serializer = self.get_serializer(data=request.data)
@@ -80,6 +81,9 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
         verifycode.is_used = True
         verifycode.save()
+
+        verifycode.user.is_active = True
+        verifycode.user.save()
 
         serializer = TokenVerifyCodeSerializer(verifycode)
         return Response(serializer.data)
