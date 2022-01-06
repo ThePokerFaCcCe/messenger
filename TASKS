@@ -1,4 +1,3 @@
-Create access view
 Create user view
 
 add access model's token to JWT or get it from db
@@ -35,3 +34,4 @@ e.g "reza@gmail.com" will convert to "za@gmail.com" and then save to database
 -add verifycode view tests
 
 -Create device view
+-Create access view
