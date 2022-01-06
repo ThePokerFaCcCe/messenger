@@ -14,10 +14,13 @@ def create_user(email=None, **kwargs) -> User:
     return User.objects.create_user(email, **kwargs)
 
 
-def create_verifycode(user=None, **kwargs) -> VerifyCode:
+def create_verifycode(user=None, active_token=False, **kwargs) -> VerifyCode:
     user = create_user() if not user else user
     code = VerifyCode.objects.create(user=user, **kwargs)
     code.refresh_from_db()
+    if active_token:
+        code.is_used = True
+        code.save()
     return code
 
 
