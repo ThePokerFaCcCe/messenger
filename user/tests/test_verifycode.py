@@ -194,3 +194,15 @@ class VerifyCodeViewTest(APITransactionTestCase):
         token = res.data['token']
         self.assertIsNotNone(
             VerifyCode.objects.find_token(token))
+
+    def test_success_user_will_active__create(self):
+        verifycode = create_verifycode()
+        user = verifycode.user
+
+        self.assertFalse(user.is_active,
+                         "User is already active")
+        self.caller.check__post(user.email, verifycode.code)
+
+        user.refresh_from_db()
+        self.assertTrue(user.is_active,
+                        "User isn't active")
