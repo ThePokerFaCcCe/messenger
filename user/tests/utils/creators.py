@@ -30,7 +30,8 @@ def create_device(user=None, type=Device.TypeChoices.WINDOWS,
     return Device.objects.create(user=user, type=type, model=model, **kwargs)
 
 
-def create_access(user=None, device=None, **kwargs) -> Device:
-    user = create_user() if not user else user
+def create_access(user=None, device=None,
+                  activate_user=False, **kwargs) -> Device:
+    user = create_user(is_active=activate_user) if not user else user
     device = create_device(user) if not device else device
     return Access.objects.create(user=user, device=device, **kwargs)
