@@ -8,6 +8,10 @@ class BaseCaller:
     def __init__(self, client: APIClient):
         self.client = client
 
+    def get_auth_header(self, access_token) -> dict:
+        """Return HTTP_AUTHORIZATION header"""
+        return {"HTTP_AUTHORIZATION": f'Token {access_token}'}
+
     def assert_status_code(self, allowed_status,
                            view_caller: Callable,
                            *view_caller_args,
