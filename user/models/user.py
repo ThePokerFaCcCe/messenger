@@ -87,6 +87,12 @@ class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
     offline_after = timedelta(seconds=20)
     """After this time from user's `last_seen`, user's `is_online` will return `False`"""
 
+    used_access = None
+    """Access object that user authenticated with. only available in request.user"""
+
+    used_device = None
+    """Device object that user's access contains. only available in request.user"""
+
     objects = UserManager()
 
     first_name = CharField(_('first name'), max_length=40)

@@ -5,3 +5,4 @@ from .device_serializers import (DeviceCreateSerializer,
                                  DeviceInfoSerializer)
 from .access_serializers import (AccessCreateSerializer,
                                  AccessInfoSerializer)
+from .user_serializers import (UserSerializer, UserStaffUpdateSerializer)

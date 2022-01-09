@@ -56,6 +56,9 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'user.authentication.AccessTokenAuthentication',
+    ],
     'DEFAULT_THROTTLE_RATES': {
         # second, minute, hour, day
         'anon': '40/minute',
