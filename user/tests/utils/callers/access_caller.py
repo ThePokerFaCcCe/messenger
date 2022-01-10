@@ -2,7 +2,7 @@ from django.urls.base import reverse, reverse_lazy
 from rest_framework import status
 
 from user.urls import app_name
-from .base_caller import BaseCaller
+from core.tests.utils import BaseCaller
 from ..creators import create_access, create_device
 
 ACCESS_LIST_URL = reverse_lazy(f"{app_name}:access-list")

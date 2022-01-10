@@ -2,7 +2,7 @@ from django.urls.base import reverse_lazy
 from rest_framework import status
 
 from user.urls import app_name
-from .base_caller import BaseCaller
+from core.tests.utils import BaseCaller
 from ..creators import generate_email
 
 VERIFYCODE_CREATE_URL = reverse_lazy(f"{app_name}:verify-code-list")
