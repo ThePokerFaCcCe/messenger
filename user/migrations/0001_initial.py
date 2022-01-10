@@ -9,7 +9,7 @@ import picturic.fields
 import picturic.utils
 import user.models.user
 import user.models.validators
-import user.models.verify
+import auth_app.models.verify
 
 
 class Migration(migrations.Migration):
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
             name='VerifyCode',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('_code', encrypt_decrypt_fields.django_fields.EncryptedBinaryField(auto_created=True, db_index=True, default=user.models.verify.VerifyCode.generate_code, verbose_name='Code')),
+                ('_code', encrypt_decrypt_fields.django_fields.EncryptedBinaryField(auto_created=True, db_index=True, default=auth_app.models.verify.VerifyCode.generate_code, verbose_name='Code')),
                 ('_tries', models.PositiveSmallIntegerField(default=0)),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created at')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),

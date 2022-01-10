@@ -1,7 +1,7 @@
 from drf_spectacular.utils import OpenApiExample
 from rest_framework import serializers
 from user.serializers import UserStaffUpdateSerializer, UserSerializer
-from core.schema_helper import schema_generator, REQUEST_DEFAULT
+from core.schema_helper import schema_generator
 
 userstaff_meta = UserStaffUpdateSerializer.Meta
 user_meta = UserSerializer.Meta

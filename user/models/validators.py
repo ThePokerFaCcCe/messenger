@@ -13,10 +13,3 @@ class UsernameValidator(validators.RegexValidator):
         'and can contain a-z, A-Z, 0-9 and one underscore( _ )'
     )
     flags = re.ASCII
-
-
-class VerifyCodeValidator(validators.RegexValidator):
-    regex = r'^\d{6}$'
-    message = _(
-        'Invalid code. code must be 6-digit number. e.g 123456'
-    )

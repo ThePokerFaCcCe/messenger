@@ -1,10 +1,11 @@
 from django.urls.base import reverse, reverse_lazy
 from rest_framework import status
-from user.models.device import Device
 
+from user.models import Device
 from user.urls import app_name
 from core.tests.utils import BaseCaller
-from ..creators import create_verifycode, create_device
+from auth_app.tests.utils import create_verifycode
+from ..creators import create_device
 
 DEVICE_LIST_URL = reverse_lazy(f"{app_name}:device-list")
 

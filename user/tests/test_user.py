@@ -5,8 +5,9 @@ from rest_framework import status
 from rest_framework.test import APITransactionTestCase
 from datetime import timedelta
 
-from .utils import (UserViewCaller, create_user,
-                    create_access)
+from auth_app.tests.utils import create_access
+from .utils.creators import create_user
+from .utils.callers import UserViewCaller
 
 
 class UserModelTest(TransactionTestCase):

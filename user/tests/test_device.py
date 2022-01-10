@@ -3,9 +3,10 @@ from rest_framework import status
 from rest_framework.test import APITransactionTestCase
 
 from user.models import Device
-from .mixins import TokenTest
-from .utils import (create_verifycode, create_device,
-                    DeviceViewCaller)
+from core.tests.mixins import TokenTest
+from auth_app.tests.utils import create_verifycode
+from .utils.callers import DeviceViewCaller
+from .utils.creators import create_device
 
 
 class DeviceModelTest(TokenTest, TransactionTestCase):

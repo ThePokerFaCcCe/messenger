@@ -3,9 +3,9 @@ from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from user.schemas.views import DeviceCreateSchemaSerializer
 from user.models import Device
-from user.models.verify import VerifyCode
+from auth_app.models import VerifyCode
 from user.serializers import DeviceCreateSerializer, DeviceInfoSerializer
-from .mixins import GetObjectByTokenMixin, GetBodyTokenObjectMixin
+from core.views.mixins import GetObjectByTokenMixin, GetBodyTokenObjectMixin
 
 
 @extend_schema_view(

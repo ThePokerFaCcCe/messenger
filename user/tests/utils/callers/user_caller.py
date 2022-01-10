@@ -3,7 +3,7 @@ from rest_framework import status
 
 from user.urls import app_name
 from core.tests.utils import BaseCaller
-from ..creators import create_access, create_user
+from ..creators import create_user
 
 # USER_LIST_URL = reverse_lazy(f"{app_name}:user-list")
 USER_ME_URL = reverse_lazy(f"{app_name}:user-me")

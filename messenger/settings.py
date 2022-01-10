@@ -43,6 +43,8 @@ INSTALLED_APPS = [
 
     'conversation',
     'user',
+    'core',
+    'auth_app',
     'picturic',
 ]
 
@@ -57,7 +59,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'user.authentication.AccessTokenAuthentication',
+        'auth_app.authentication.AccessTokenAuthentication',
     ],
     'DEFAULT_THROTTLE_RATES': {
         # second, minute, hour, day
