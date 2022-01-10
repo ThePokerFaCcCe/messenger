@@ -1,8 +1,3 @@
-Create user view
-
-add access model's token to JWT or get it from db
-add middleware to set req.device & req.user from access token
-
 Create conversation model
 Create conversation_type model(pv-gp-channel...)
 Create message model
@@ -35,3 +30,6 @@ e.g "reza@gmail.com" will convert to "za@gmail.com" and then save to database
 
 -Create device view
 -Create access view
+
+-Create user view
+-add access model's token for authentication
