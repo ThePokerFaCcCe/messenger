@@ -59,3 +59,13 @@ class UserLastSeenSerializer(serializers.ModelSerializer):
             'next_offline',
             'last_seen',
         ]
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    profile_image = PictureField()
+
+    class Meta:
+        model = User
+        fields = [
+            'profile_image',
+        ]

@@ -3,13 +3,16 @@ from rest_framework import mixins, viewsets, permissions, status
 from rest_framework.exceptions import NotFound
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.parsers import FileUploadParser
 from drf_spectacular.utils import extend_schema_view
 
+from .mixins import UserProfileMixin
 from core.permissions import IsAdminUserOR, IsOwnerOfItem
 from user.schemas.views import USER_VIEW_SCHEMA
 from user.serializers import (UserSerializer,
                               UserStaffUpdateSerializer,
-                              UserLastSeenSerializer)
+                              UserLastSeenSerializer,
+                              UserProfileSerializer)
 
 
 User = get_user_model()
@@ -18,6 +21,7 @@ User = get_user_model()
 @extend_schema_view(**USER_VIEW_SCHEMA)
 class UserViewSet(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
+                  UserProfileMixin,
                   viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -29,11 +33,18 @@ class UserViewSet(mixins.RetrieveModelMixin,
             return UserStaffUpdateSerializer
         elif self.action == 'last_seen':
             return UserLastSeenSerializer
+        elif self.action == 'profile_image':
+            return UserProfileSerializer
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action in ['update', 'partial_update']:
+        if (self.action in ['update', 'partial_update']
+                or (self.action == 'profile_image'
+                    and self.request.method != 'GET'
+                    )
+            ):
             return [perm() for perm in [IsOwnerOfItem | IsAdminUserOR]]
+
         return [permissions.IsAuthenticated()]
 
     @action(["get"], detail=True, url_path=r'last-seen')
@@ -47,6 +58,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
 @extend_schema_view(**USER_VIEW_SCHEMA)
 class SelfUserViewSet(mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
+                      UserProfileMixin,
                       viewsets.GenericViewSet):
     # queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -55,6 +67,8 @@ class SelfUserViewSet(mixins.RetrieveModelMixin,
     def get_serializer_class(self):
         if self.action == 'send_alive':
             return UserLastSeenSerializer
+        elif self.action == 'profile_image':
+            return UserProfileSerializer
 
         return super().get_serializer_class()
 
