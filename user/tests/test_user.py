@@ -1,9 +1,10 @@
-import time
 from django.test.testcases import TransactionTestCase
 from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.test import APITransactionTestCase
 from datetime import timedelta
+from unittest.mock import patch
+import time
 
 from auth_app.tests.utils import create_access
 from .utils.creators import create_user
@@ -45,9 +46,10 @@ class UserModelTest(TransactionTestCase):
         user = create_user()
         user.set_online()
         self.assertEqual(user.is_online, True)
-        user.offline_after = timedelta(seconds=1)
-        time.sleep(1.5)
-        self.assertEqual(user.is_online, False)
+        with patch.object(user, 'offline_after',
+                          new=timedelta(seconds=1)):
+            time.sleep(1.5)
+            self.assertEqual(user.is_online, False)
 
 
 class DeviceViewTest(APITransactionTestCase):
@@ -117,3 +119,20 @@ class DeviceViewTest(APITransactionTestCase):
         self.user.refresh_from_db()
         self.assertFalse(self.user.is_staff,
                          'User can set staff perm to itself')
+
+    def test_send_alive__me(self):
+        old_last_seen = self.user.last_seen
+        res = self.caller.me__send_alive__post(self.access)
+
+        self.user.refresh_from_db()
+
+        self.assertTrue(res.data['is_online'])
+
+        self.assertEqual(
+            self.user.next_offline,
+            res.data['next_offline']
+        )
+
+        self.assertGreater(
+            self.user.last_seen, old_last_seen
+        )

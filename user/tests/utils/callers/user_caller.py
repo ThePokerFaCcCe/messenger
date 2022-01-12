@@ -6,7 +6,8 @@ from core.tests.utils import BaseCaller
 from ..creators import create_user
 
 # USER_LIST_URL = reverse_lazy(f"{app_name}:user-list")
-USER_ME_URL = reverse_lazy(f"{app_name}:user-me")
+USER_ME_DETAIL_URL = reverse_lazy(f"{app_name}:user-me-detail")
+USER_ME_ALIVE_URL = reverse_lazy(f"{app_name}:user-me-send-alive")
 
 
 def user_detail_url(pk):
@@ -39,7 +40,7 @@ class UserViewCaller(BaseCaller):
         """Calls user-me view with GET method"""
         return self.assert_status_code(
             allowed_status, self.client.get,
-            USER_ME_URL,
+            USER_ME_DETAIL_URL,
             **self.get_auth_header(access_token)
         )
 
@@ -49,7 +50,16 @@ class UserViewCaller(BaseCaller):
         """Calls user-me view with PATCH method"""
         return self.assert_status_code(
             allowed_status, self.client.patch,
-            USER_ME_URL,
+            USER_ME_DETAIL_URL,
             data=update_kwargs,
+            **self.get_auth_header(access_token)
+        )
+
+    def me__send_alive__post(self, access_token,
+                             allowed_status=status.HTTP_200_OK):
+        """Calls user-send-alive view with POST method"""
+        return self.assert_status_code(
+            allowed_status, self.client.post,
+            USER_ME_ALIVE_URL,
             **self.get_auth_header(access_token)
         )
