@@ -48,3 +48,14 @@ class UserStaffUpdateSerializer(serializers.ModelSerializer):
             'is_staff',
             'is_scam',
         ] + read_only_fields
+
+
+class UserLastSeenSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            'is_online',
+            'next_offline',
+            'last_seen',
+        ]

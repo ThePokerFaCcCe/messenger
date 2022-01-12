@@ -1,14 +1,21 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from user.views import (DeviceViewSet, UserViewSet)
+from core.routers import NestedNoLookupRouter
+from user.views import (DeviceViewSet, UserViewSet,
+                        SelfUserViewSet)
 from user.apps import UserConfig
+
 app_name = UserConfig.name
 
 router = DefaultRouter()
 router.register('device', DeviceViewSet, basename='device')
 router.register('', UserViewSet, basename='user')
 
+nl_user_router = NestedNoLookupRouter(router, '')
+nl_user_router.register('me', SelfUserViewSet, basename='user-me')
+
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('', include(nl_user_router.urls)),
 ]

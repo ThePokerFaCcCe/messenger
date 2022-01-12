@@ -1,38 +1,27 @@
 from django.contrib.auth import get_user_model
-from rest_framework import mixins, viewsets, permissions
+from rest_framework import mixins, viewsets, permissions, status
+from rest_framework.exceptions import NotFound
 from rest_framework.decorators import action
-from drf_spectacular.utils import extend_schema_view, extend_schema
+from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema_view
 
 from core.permissions import IsAdminUserOR, IsOwnerOfItem
-from user.schemas.views import (STAFF_UPDATE_REQUEST_EXAMPLE,
-                                USER_UPDATE_REQUEST_EXAMPLE)
-from user.serializers import UserSerializer, UserStaffUpdateSerializer
+from user.schemas.views import USER_VIEW_SCHEMA
+from user.serializers import (UserSerializer,
+                              UserStaffUpdateSerializer,
+                              UserLastSeenSerializer)
 
 
 User = get_user_model()
 
-update_schema = extend_schema(
-    description=("Update user information"),
-    examples=[USER_UPDATE_REQUEST_EXAMPLE, STAFF_UPDATE_REQUEST_EXAMPLE],
-    responses={200: UserSerializer,
-               400: None, 404: None}
-)
 
-
-@extend_schema_view(
-    retrieve=extend_schema(
-        description=("Show user information"),
-        responses={200: UserSerializer,
-                   400: None, 404: None}
-    ),
-    update=update_schema,
-    partial_update=update_schema
-)
+@extend_schema_view(**USER_VIEW_SCHEMA)
 class UserViewSet(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_value_regex = r'[\d]+'
 
     def get_serializer_class(self):
         if (self.action in ['update', 'partial_update']
@@ -45,15 +34,32 @@ class UserViewSet(mixins.RetrieveModelMixin,
             return [perm() for perm in [IsOwnerOfItem | IsAdminUserOR]]
         return [permissions.IsAuthenticated()]
 
-    def get_instance(self):
-        return self.request.user
 
-    @action(["get", "put", "patch"], detail=False)
-    def me(self, request, *args, **kwargs):
-        self.get_object = self.get_instance
-        if request.method == "GET":
-            return self.retrieve(request, *args, **kwargs)
-        elif request.method == "PUT":
-            return self.update(request, *args, **kwargs)
-        elif request.method == "PATCH":
-            return self.partial_update(request, *args, **kwargs)
+@extend_schema_view(**USER_VIEW_SCHEMA)
+class SelfUserViewSet(mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      viewsets.GenericViewSet):
+    # queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'send_alive':
+            return UserLastSeenSerializer
+
+        return super().get_serializer_class()
+
+    def get_object(self):
+        user = self.request.user
+        if not (user and user.is_authenticated):
+            raise NotFound()
+
+        return user
+
+    @action(["post"], detail=False, url_path=r'send-alive')
+    def send_alive(self, request, *args, **kwargs):
+        """Update user's `last_seen` to now"""
+        user = self.get_object()
+        user.set_online(save=True)
+        serializer = self.get_serializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
