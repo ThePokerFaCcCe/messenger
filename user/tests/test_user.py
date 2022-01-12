@@ -8,6 +8,7 @@ from unittest.mock import patch
 import time
 
 from auth_app.tests.utils import create_access
+from core.tests.utils import create_image
 from .utils.creators import create_user
 from .utils.callers import UserViewCaller
 
@@ -158,4 +159,120 @@ class DeviceViewTest(APITransactionTestCase):
 
         self.assertGreater(
             self.user.last_seen, old_last_seen
+        )
+
+    def test_get_profile_image__me(self):
+        self.caller.me__profile_image__get(
+            self.access
+        )
+
+    def create_profile_image_tests(self, post_func,
+                                   get_func, **func_kwargs):
+        res_post = post_func(**func_kwargs)
+        self.assertIsNotNone(res_post.data['profile_image'])
+        self.assertIsNotNone(
+            res_post.data['profile_image']['image'])
+        self.assertIsNotNone(
+            res_post.data['profile_image']['image']['url'])
+
+        res_get = get_func(**func_kwargs)
+        self.assertEqual(
+            res_post.data['profile_image']['image']['url'],
+            res_get.data['profile_image']['image']['url'],
+        )
+
+        self.assertEqual(
+            res_post.data['profile_image']['thumbnail']['url'],
+            res_get.data['profile_image']['thumbnail']['url'],
+        )
+
+    def delete_profile_image_tests(self, del_func,
+                                   get_func, **func_kwargs):
+        del_func(**func_kwargs)
+
+        res_get = get_func(**func_kwargs)
+        self.assertIsNone(res_get.data['profile_image'])
+
+    def test_create_profile_image__me(self):
+        self.user.delete_profile_image()
+
+        self.create_profile_image_tests(
+            self.caller.me__profile_image__post,
+            self.caller.me__profile_image__get,
+            access_token=self.access,
+        )
+
+    def test_update_profile_image__me(self):
+        self.caller.me__profile_image__post(
+            self.access
+        )
+
+        self.create_profile_image_tests(
+            self.caller.me__profile_image__post,
+            self.caller.me__profile_image__get,
+            access_token=self.access
+        )
+
+    def test_delete_profile_image__me(self):
+        self.delete_profile_image_tests(
+            self.caller.me__profile_image__delete,
+            self.caller.me__profile_image__get,
+            access_token=self.access
+        )
+
+    def test_self_profile_image__create(self):
+        self.user.delete_profile_image()
+
+        self.create_profile_image_tests(
+            self.caller.profile_image__post,
+            self.caller.profile_image__get,
+            access_token=self.access,
+            pk=self.user.pk,
+        )
+
+    def test_self_profile_image__update(self):
+        self.caller.me__profile_image__post(
+            self.access
+        )
+
+        self.create_profile_image_tests(
+            self.caller.profile_image__post,
+            self.caller.profile_image__get,
+            access_token=self.access,
+            pk=self.user.pk,
+        )
+
+    def test_self_profile_image__delete(self):
+        self.delete_profile_image_tests(
+            self.caller.profile_image__delete,
+            self.caller.profile_image__get,
+            access_token=self.access,
+            pk=self.user.pk,
+        )
+
+    def test_get_others_profile_image(self):
+        self.caller.profile_image__get(
+            self.access
+        )
+
+    def test_user_update_others_profile_image(self):
+        self.caller.profile_image__post(
+            self.access,
+            allowed_status=status.HTTP_403_FORBIDDEN
+        )
+
+    def test_staff_update_others_profile_image(self):
+        self.caller.profile_image__post(
+            self.staff_access,
+        )
+
+    def test_user_delete_others_profile_image(self):
+        self.caller.profile_image__delete(
+            self.access,
+            allowed_status=status.HTTP_403_FORBIDDEN
+        )
+
+    def test_staff_delete_others_profile_image(self):
+        self.caller.profile_image__delete(
+            self.staff_access,
         )
