@@ -27,12 +27,21 @@ class UserViewSet(mixins.RetrieveModelMixin,
         if (self.action in ['update', 'partial_update']
                 and self.request.user.is_staff):
             return UserStaffUpdateSerializer
+        elif self.action == 'last_seen':
+            return UserLastSeenSerializer
         return super().get_serializer_class()
 
     def get_permissions(self):
         if self.action in ['update', 'partial_update']:
             return [perm() for perm in [IsOwnerOfItem | IsAdminUserOR]]
         return [permissions.IsAuthenticated()]
+
+    @action(["get"], detail=True, url_path=r'last-seen')
+    def last_seen(self, request, *args, **kwargs):
+        """Get user's last seen and online status"""
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema_view(**USER_VIEW_SCHEMA)
