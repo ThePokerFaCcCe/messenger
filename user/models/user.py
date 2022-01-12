@@ -194,6 +194,13 @@ class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
         if save:
             self.save(**save_kwargs)
 
+    def delete_profile_image(self) -> None:
+        """Delete user's `profile_image`"""
+
+        if self.profile_image is not None:
+            self.profile_image.delete()
+            self.save()
+
     def clean(self):
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
