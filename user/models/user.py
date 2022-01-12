@@ -159,7 +159,9 @@ class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
         """Returns datetime that user will be offline after that
         or `None` if user is already offline"""
         if self.is_online:
-            return self.last_seen + self.offline_after
+            return (self.last_seen + self.offline_after).astimezone(
+                timezone.get_current_timezone()
+            )
 
     @property
     def is_anonymous(self):
