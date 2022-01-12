@@ -1,5 +1,6 @@
 from django.test.testcases import TransactionTestCase
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITransactionTestCase
 from datetime import timedelta
@@ -103,6 +104,28 @@ class DeviceViewTest(APITransactionTestCase):
         user.refresh_from_db()
         self.assertTrue(user.is_scam,
                         "Staff cant set scam to user")
+
+    def test_online__last_seen__get(self):
+        user = create_user()
+        user.set_online()
+
+        res = self.caller.last_seen__get(self.access, pk=user.pk)
+        self.assertTrue(res.data['is_online'])
+
+        self.assertEqual(
+            user.next_offline,
+            res.data['next_offline']
+        )
+
+    def test_offline__last_seen__get(self):
+        user = create_user()
+        user.last_seen = timezone.now()-timedelta(weeks=999)
+        user.save()
+
+        res = self.caller.last_seen__get(self.access, pk=user.pk)
+        self.assertFalse(res.data['is_online'])
+
+        self.assertIsNone(res.data['next_offline'])
 
     def test_get_user__me(self):
         self.caller.me__get(self.access)

@@ -14,6 +14,10 @@ def user_detail_url(pk):
     return reverse(f"{app_name}:user-detail", kwargs={'pk': pk})
 
 
+def user_last_seen_url(pk):
+    return reverse(f"{app_name}:user-last-seen", kwargs={'pk': pk})
+
+
 class UserViewCaller(BaseCaller):
     def retrieve__get(self, access_token, pk=None,
                       allowed_status=status.HTTP_200_OK):
@@ -32,6 +36,16 @@ class UserViewCaller(BaseCaller):
             allowed_status, self.client.patch,
             user_detail_url(pk or create_user().pk),
             data=update_kwargs,
+            **self.get_auth_header(access_token)
+        )
+
+    def last_seen__get(self, access_token, pk=None,
+                       allowed_status=status.HTTP_200_OK
+                       ):
+        """Calls user-last-seen view with GET method"""
+        return self.assert_status_code(
+            allowed_status, self.client.get,
+            user_last_seen_url(pk or create_user().pk),
             **self.get_auth_header(access_token)
         )
 
