@@ -10,7 +10,7 @@ from django.db.utils import OperationalError, ProgrammingError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 
 from picturic.fields import PictureField
@@ -84,7 +84,7 @@ class UserManager(Manager):
 
 class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
     start_count_value = 0  # 1000000  # for AutoFieldStartCountMixin
-    offline_after = timedelta(seconds=20)
+    offline_after = timedelta(seconds=60)
     """After this time from user's `last_seen`, user's `is_online` will return `False`"""
 
     used_access = None
@@ -151,7 +151,12 @@ class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
     @property
     def is_online(self) -> bool:
         """Returns `False` if `20` seconds passed from `last_seen`"""
-        return ((timezone.now() - self.last_seen) < self.offline_after)
+        return timezone.now() < self.next_offline
+
+    @property
+    def next_offline(self) -> datetime:
+        """Returns datetime that user will be offline after that"""
+        return self.last_seen + self.offline_after
 
     @property
     def is_anonymous(self):
