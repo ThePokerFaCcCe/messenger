@@ -1,3 +1,4 @@
+from typing import Optional
 from django.contrib.auth.models import PermissionsMixin
 from django.conf import settings
 from django.core.mail import send_mail
@@ -150,13 +151,15 @@ class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
 
     @property
     def is_online(self) -> bool:
-        """Returns `False` if `20` seconds passed from `last_seen`"""
-        return timezone.now() < self.next_offline
+        """Returns `False` if now is passed from `offline_after`"""
+        return ((timezone.now() - self.last_seen) < self.offline_after)
 
     @property
-    def next_offline(self) -> datetime:
-        """Returns datetime that user will be offline after that"""
-        return self.last_seen + self.offline_after
+    def next_offline(self) -> Optional[datetime]:
+        """Returns datetime that user will be offline after that
+        or `None` if user is already offline"""
+        if self.is_online:
+            return self.last_seen + self.offline_after
 
     @property
     def is_anonymous(self):
