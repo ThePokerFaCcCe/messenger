@@ -31,14 +31,11 @@ class UserProfileMixin:
                                          data=self.request.data)
         serializer.is_valid(raise_exception=True)
 
-        if user_old_profile is None:
-            status_code = status.HTTP_201_CREATED
-        else:
+        if user_old_profile is not None:
             user_old_profile.delete()
             serializer.save()
-            status_code = status.HTTP_200_OK
 
-        return Response(serializer.data, status=status_code)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete_profile_image(self):
         """Delete user's `profile_image`"""
