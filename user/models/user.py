@@ -114,7 +114,9 @@ class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
             'unique': _("A user with that username already exists."),
         },)
     profile_image = PictureField(verbose_name=_("Profile image"),
-                                 use_upload_to_func=True, null=True)
+                                 use_upload_to_func=True, null=True,
+                                 make_thumbnail=True,
+                                 thumbnail_size=(150, 150))
     last_seen = DateTimeField(_("Last seen"), auto_now_add=True,
                               help_text=_("Last time user was online"))
     email = EmailField(_("email"), unique=True, db_index=True)
