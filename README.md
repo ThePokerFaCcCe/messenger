@@ -2,7 +2,7 @@
 
 Messenger REST API backend with django and django rest framework.
 
-Database design: https://github.com/yoosuf/Messenger
+Database design idea: https://github.com/yoosuf/Messenger
 
 
 # Installation
