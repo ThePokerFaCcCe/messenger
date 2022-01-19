@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
 
     'conversation',
+    'community',
     'user',
     'core',
     'auth_app',
