@@ -17,6 +17,8 @@ mysqlclient = "==2.1.*"
 python-decouple = "==3.5"
 pillow = "*"
 encrypt-decrypt-fields = "*"
+celery = "==5.*"
+redis = "==4.*"
 
 [dev-packages]
 autopep8 = "*"
