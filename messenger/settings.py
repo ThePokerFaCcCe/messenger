@@ -186,3 +186,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Celery settings
+# https://docs.celeryproject.org/en/stable/userguide/configuration.html#example-configuration-file
+
+BROKER_URL = config('BROKER_URL')
+CELERY_RESULT_BACKEND = config('RESULT_BACKEND')
+CELERY_ACCEPT_CONTENT = ['pickle']
+CELERY_TASK_SERIALIZER = 'pickle'
+CELERY_RESULT_SERIALIZER = 'pickle'
