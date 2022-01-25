@@ -30,7 +30,7 @@ class VerifyCodeQuerySet(QuerySet):
     def filter_expired(self) -> QuerySet:
         """Return QuerySet object that contains only expired codes"""
         return self.annotate_expires_at().filter(
-            Q(is_used=True) |
+            Q(is_used=False),
             Q(expires_at__lte=timezone.now()) |
             Q(_tries__gte=self.model.max_tries)
         )
