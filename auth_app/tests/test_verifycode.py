@@ -51,16 +51,21 @@ class VerifyCodeModelTest(TokenTest, TransactionTestCase):
             self.assertIn(code, VerifyCode.objects.filter_expired())
             self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
 
-    def test_expire_by_is_used(self):
-        with patch.object(VerifyCode, 'expire_after',
-                          new=timedelta(hours=2)):
-            code = create_verifycode()
-            code.is_used = True
-            code.save()
+    def test_is_used_not_in_others(self):
+        code = create_verifycode(is_used=True)
 
-            self.assertEqual(code.is_expired, True)
-            self.assertIn(code, VerifyCode.objects.filter_used())
-            self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
+        self.assertEqual(code.is_expired, True)
+        self.assertIn(code, VerifyCode.objects.filter_used())
+        self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
+        self.assertNotIn(code, VerifyCode.objects.filter_expired())
+
+    def test_expired_not_in_filter_used(self):
+        code = create_verifycode(_tries=VerifyCode.max_tries+1)
+
+        self.assertEqual(code.is_expired, True)
+        self.assertIn(code, VerifyCode.objects.filter_expired())
+        self.assertNotIn(code, VerifyCode.objects.filter_used())
+        self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
 
     def test_encryption(self):
         code = create_verifycode()
