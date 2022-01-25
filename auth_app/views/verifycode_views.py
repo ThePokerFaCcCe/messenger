@@ -39,7 +39,9 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     def get_queryset(self):
         qs = VerifyCode.objects.filter_unexpired()
         if self.action == 'check':
-            return qs.select_related("user")
+            return qs.select_for_update()\
+                .select_related("user")
+
         return qs
 
     def create(self, request, *args, **kwargs):
@@ -80,10 +82,12 @@ class VerifyCodeViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             # raise ValidationError({'code': "Code is not correct"})
 
         verifycode.is_used = True
-        verifycode.save()
 
         verifycode.user.is_active = True
-        verifycode.user.save()
+
+        with transaction.atomic():
+            verifycode.save()
+            verifycode.user.save()
 
         serializer = TokenVerifyCodeSerializer(verifycode)
         return Response(serializer.data)
