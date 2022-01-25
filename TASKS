@@ -1,4 +1,3 @@
-Find user by username
 Create conversation pv view
 
 Create Community models
@@ -47,3 +46,5 @@ e.g "reza@gmail.com" will convert to "za@gmail.com" and then save to database
 
 -Create conversation model
 -Create PrivateChat model(pv-gp-channel...)
+
+-Find user by username
