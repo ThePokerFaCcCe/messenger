@@ -1,3 +1,4 @@
+from celery.schedules import crontab
 from pathlib import Path
 from decouple import config
 
@@ -196,3 +197,9 @@ CELERY_RESULT_BACKEND = config('RESULT_BACKEND')
 CELERY_ACCEPT_CONTENT = ['pickle']
 CELERY_TASK_SERIALIZER = 'pickle'
 CELERY_RESULT_SERIALIZER = 'pickle'
+CELERYBEAT_SCHEDULE = {
+    'delete_inactive_users': {
+        'task': 'user.tasks.delete_inactive_users',
+        'schedule': crontab(minute=0, hour='*/1')
+    }
+}
