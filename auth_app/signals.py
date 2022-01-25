@@ -5,7 +5,10 @@ from .tasks import delete_verifycode
 from .models import VerifyCode
 
 
-@receiver(post_save, sender=VerifyCode)
+ADVT_UID = 'add_delete_verifycode_task'
+
+
+@receiver(post_save, sender=VerifyCode, dispatch_uid=ADVT_UID)
 def add_delete_verifycode_task(sender, instance,
                                created, **kwargs):
     if created:
