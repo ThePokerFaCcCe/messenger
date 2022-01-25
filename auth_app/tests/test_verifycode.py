@@ -59,7 +59,7 @@ class VerifyCodeModelTest(TokenTest, TransactionTestCase):
             code.save()
 
             self.assertEqual(code.is_expired, True)
-            self.assertIn(code, VerifyCode.objects.filter_expired())
+            self.assertIn(code, VerifyCode.objects.filter_used())
             self.assertNotIn(code, VerifyCode.objects.filter_unexpired())
 
     def test_encryption(self):
