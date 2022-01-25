@@ -19,18 +19,23 @@ class VerifyCodeQuerySet(QuerySet):
             )
         )
 
-    def filter_unexpired(self) -> QuerySet:
+    def filter_unexpired(self, *filter_args, **filter_kwargs) -> QuerySet:
         """Return QuerySet object that contains only unexpired codes"""
         return self.annotate_expires_at().filter(
             is_used=False,
             expires_at__gt=timezone.now(),
-            _tries__lt=self.model.max_tries
+            _tries__lt=self.model.max_tries,
+            *filter_args, **filter_kwargs
         )
 
-    def filter_expired(self) -> QuerySet:
+    def filter_expired(self, *filter_args, **filter_kwargs) -> QuerySet:
         """Return QuerySet object that contains only expired codes"""
         return self.annotate_expires_at().filter(
             Q(is_used=False),
             Q(expires_at__lte=timezone.now()) |
-            Q(_tries__gte=self.model.max_tries)
+            Q(_tries__gte=self.model.max_tries),
+            *filter_args, **filter_kwargs
         )
+
+    def filter_used(self, *filter_args, **filter_kwargs) -> QuerySet:
+        return self.filter(is_used=True, *filter_args, **filter_kwargs)
