@@ -276,3 +276,11 @@ class DeviceViewTest(APITransactionTestCase):
         self.caller.profile_image__delete(
             self.staff_access,
         )
+
+    def test_wrong_username__find(self):
+        self.caller.find__get(self.access, 'imnotexist123',
+                              status.HTTP_404_NOT_FOUND)
+
+    def test_success_username__find(self):
+        user = create_user(username='thepokerface')
+        self.caller.find__get(self.access, user.username)
