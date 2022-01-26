@@ -7,6 +7,10 @@ def create_user(email=None, **kwargs) -> User:
     return User.objects.create_user(email, **kwargs)
 
 
+def create_active_user(**kwargs) -> User:
+    return create_user(is_active=True, **kwargs)
+
+
 def create_device(user=None, type=Device.TypeChoices.WINDOWS,
                   model='10 Pro', **kwargs) -> Device:
     user = create_user() if not user else user
