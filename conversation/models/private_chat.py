@@ -1,11 +1,16 @@
 from django.db import models
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 User = settings.AUTH_USER_MODEL
 
 
 class PrivateChat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
+
+    creator = models.ForeignKey(
+        to=User, on_delete=models.SET_NULL, null=True, blank=True,
+        help_text=_("The user that started conversation"))
 
     users = models.ManyToManyField(to=User,
                                    related_name="private_chats")
