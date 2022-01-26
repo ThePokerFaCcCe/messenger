@@ -22,5 +22,5 @@ def create_conversation(chat=None, user=None, **kwargs) -> Conversation:
 
     content_type = ContentType.objects.get_for_model(chat)
     return Conversation.objects.create(
-        chat_id=chat.pk, content_type=content_type,
+        chat_id=chat.pk, chat_content_type=content_type,
         user=user, **kwargs)

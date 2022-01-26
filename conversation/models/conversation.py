@@ -13,7 +13,7 @@ User = settings.AUTH_USER_MODEL
 
 def get_model_type(model: Type[models.Model]) -> str:
     if issubclass(model, PrivateChat):
-        return PrivateChat.TypeChoices.PRIVATE
+        return Conversation.TypeChoices.PRIVATE
 
     return getattr(model, "type", None)
 
@@ -44,6 +44,6 @@ class Conversation(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.type:
-            model = self.content_type.model_class()
+            model = self.chat_content_type.model_class()
             self.type = get_model_type(model)
         super().save(*args, **kwargs)
