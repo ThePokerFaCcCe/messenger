@@ -2,10 +2,14 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from conversation.models.manager import PrivateChatManager
+
 User = settings.AUTH_USER_MODEL
 
 
 class PrivateChat(models.Model):
+    objects: PrivateChatManager = PrivateChatManager()
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     creator = models.ForeignKey(
