@@ -19,6 +19,7 @@ pillow = "*"
 encrypt-decrypt-fields = "*"
 celery = "==5.*"
 redis = "==4.*"
+rest-framework-generic-relations = "*"
 
 [dev-packages]
 autopep8 = "*"
