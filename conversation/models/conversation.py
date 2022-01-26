@@ -26,6 +26,10 @@ class Conversation(models.Model):
     type = models.CharField(choices=TypeChoices.choices,
                             auto_created=True, max_length=2)
 
+    alias = models.CharField(_("Alias"), null=True, blank=True, max_length=64)
+    is_pinned = models.BooleanField(_("Pinned"), default=False)
+    is_archived = models.BooleanField(_("Archived"), default=False)
+
     is_deleted = models.BooleanField(_("Is deleted"),
                                      default=False, db_index=True,
                                      help_text=_("Is chat deleted or not"))
