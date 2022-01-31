@@ -1,4 +1,7 @@
-Create conversation pv view
+Read for websockets:
+https://pythonrepo.com/repo/Bearle-django_private_chat2
+https://channels.readthedocs.io/en/stable/tutorial/part_2.html
+https://dev.to/earthcomfy/introduction-to-web-sockets-3n7m
 
 Create Community models
 Add expire for invite links
@@ -18,6 +21,10 @@ Add seen foreign key to message model
 Create seen view
 
 create user contacts model
+
+Add user's ip to access object
+
+Add custom background field for conversation?
 
 ---
 
@@ -48,3 +55,5 @@ e.g "reza@gmail.com" will convert to "za@gmail.com" and then save to database
 -Create PrivateChat model(pv-gp-channel...)
 
 -Find user by username
+
+-Create conversation view
