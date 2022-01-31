@@ -10,9 +10,9 @@ app_name = UserConfig.name
 
 router = DefaultRouter()
 router.register('device', DeviceViewSet, basename='device')
-router.register('', UserViewSet, basename='user')
+router.register('user', UserViewSet, basename='user')
 
-nl_user_router = NestedNoLookupRouter(router, '')
+nl_user_router = NestedNoLookupRouter(router, 'user')
 nl_user_router.register('me', SelfUserViewSet, basename='user-me')
 
 urlpatterns = [
