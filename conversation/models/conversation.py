@@ -30,9 +30,9 @@ class Conversation(models.Model):
     is_pinned = models.BooleanField(_("Pinned"), default=False)
     is_archived = models.BooleanField(_("Archived"), default=False)
 
-    is_deleted = models.BooleanField(_("Is deleted"),
-                                     default=False, db_index=True,
-                                     help_text=_("Is chat deleted or not"))
+    # is_deleted = models.BooleanField(_("Is deleted"),
+    #                                  default=False, db_index=True,
+    #                                  help_text=_("Is chat deleted or not"))
     created_at = models.DateTimeField(auto_now_add=True)
 
     chat_content_type: ContentType = models.ForeignKey(
