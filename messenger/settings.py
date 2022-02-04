@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'core',
     'auth_app',
     'picturic',
+    'global_id',
 ]
 
 
