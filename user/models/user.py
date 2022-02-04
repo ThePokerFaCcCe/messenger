@@ -2,8 +2,6 @@ from typing import Optional
 from django.contrib.auth.models import PermissionsMixin
 from django.conf import settings
 from django.core.mail import send_mail
-from django.core.validators import MaxLengthValidator, MinLengthValidator
-from django.db.models import F
 from django.db.models.base import Model
 from django.db.models.fields import BooleanField, CharField, DateTimeField, EmailField
 from django.db.models.manager import Manager
@@ -13,9 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-
 from picturic.fields import PictureField
-from .validators import UsernameValidator
 
 
 class AutoFieldStartCountMixin:
@@ -99,20 +95,6 @@ class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
     first_name = CharField(_('first name'), max_length=40)
     last_name = CharField(_('last name'), max_length=40, null=True)
     bio = CharField(_('Biography'), max_length=90, null=True)
-    username = CharField(
-        _('username'),
-        unique=True, null=True, max_length=60, db_index=True,
-        help_text=_(('Username must start with English letters '
-                     'and contain numbers and one underscore ( _ ). '
-                     '4-60chars only ')),
-        validators=[
-            UsernameValidator(),
-            MinLengthValidator(4, _("Username must have at least 4 chars")),
-            MaxLengthValidator(60, _("Username can have at last 60 chars")),
-        ],
-        error_messages={
-            'unique': _("A user with that username already exists."),
-        },)
     profile_image = PictureField(verbose_name=_("Profile image"),
                                  use_upload_to_func=True, null=True,
                                  make_thumbnail=True,

@@ -8,7 +8,6 @@ import encrypt_decrypt_fields.django_fields
 import picturic.fields
 import picturic.utils
 import user.models.user
-import user.models.validators
 import auth_app.models.verify
 
 
@@ -29,7 +28,7 @@ class Migration(migrations.Migration):
                 ('first_name', models.CharField(max_length=40, verbose_name='first name')),
                 ('last_name', models.CharField(max_length=40, null=True, verbose_name='last name')),
                 ('bio', models.CharField(max_length=90, null=True, verbose_name='Biography')),
-                ('username', models.CharField(db_index=True, error_messages={'unique': 'A user with that username already exists.'}, help_text='Username must start with English letters and contain numbers and one underscore ( _ ). 4-60chars only ', max_length=60, null=True, unique=True, validators=[user.models.validators.UsernameValidator(), django.core.validators.MinLengthValidator(4, 'Username must have at least 4 chars'), django.core.validators.MaxLengthValidator(60, 'Username can have at last 60 chars')], verbose_name='username')),
+                ('username', models.CharField(db_index=True, error_messages={'unique': 'A user with that username already exists.'}, help_text='Username must start with English letters and contain numbers and one underscore ( _ ). 4-60chars only ', max_length=60, null=True, unique=True, verbose_name='username')),
                 ('profile_image', picturic.fields.PictureField(max_length=9999, null=True, upload_to=picturic.utils.upload_to_path, verbose_name='Profile image')),
                 ('last_seen', models.DateTimeField(auto_now_add=True, help_text='Last time user was online', verbose_name='Last seen')),
                 ('email', models.EmailField(db_index=True, max_length=254, unique=True, verbose_name='email')),
