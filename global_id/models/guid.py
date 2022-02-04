@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxLengthValidator, MinLengthValidator
+from django.core import exceptions
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from .validators import GUIDValidator
@@ -29,3 +30,8 @@ class GUID(models.Model):
         ct_field="chat_content_type",
         fk_field="chat_id"
     )
+
+    def clean_guid(self):
+        if self.__class__.objects.filter(guid=self.guid).exists():
+            raise exceptions.ValidationError(
+                {"guid": "This GUID already exists."})
