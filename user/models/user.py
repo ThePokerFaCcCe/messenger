@@ -1,48 +1,47 @@
 from typing import Optional
 from django.contrib.auth.models import PermissionsMixin
-from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models.base import Model
 from django.db.models.fields import BooleanField, CharField, DateTimeField, EmailField
 from django.db.models.manager import Manager
-from django.db.utils import OperationalError, ProgrammingError
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from datetime import datetime, timedelta
 
 from picturic.fields import PictureField
+from global_id.models.mixins import GUIDMixin
 
 
-class AutoFieldStartCountMixin:
-    """Must be used when table is empty"""
+# class AutoFieldStartCountMixin:
+#     """Must be used when table is empty"""
 
-    start_count_value = 1
+#     start_count_value = 1
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        try:
-            if not self.__class__.objects.count():
-                # I found some bugs here.
-                # if we just clear the table from DB,
-                # this code runs again!
-                # And then if we create new objects,
-                # their ID will start from start_count_value
-                self.update_auto_increment()
-        except (ProgrammingError, OperationalError) as e:
-            pass
+#     def __init__(self, *args, **kwargs) -> None:
+#         super().__init__(*args, **kwargs)
+#         try:
+#             if not self.__class__.objects.count():
+#                 # I found some bugs here.
+#                 # if we just clear the table from DB,
+#                 # this code runs again!
+#                 # And then if we create new objects,
+#                 # their ID will start from start_count_value
+#                 self.update_auto_increment()
+#         except (ProgrammingError, OperationalError) as e:
+#             pass
 
-    def update_auto_increment(self):
-        """Update auto increment start count"""
-        # https://stackoverflow.com/a/15317333/14034832
-        from django.db import connection, transaction, router
+#     def update_auto_increment(self):
+#         """Update auto increment start count"""
+#         # https://stackoverflow.com/a/15317333/14034832
+#         from django.db import connection, transaction, router
 
-        cursor = connection.cursor()
-        with transaction.atomic():
-            _router = settings.DATABASES[router.db_for_write(self.__class__)]['NAME']
-            alter_str = "ALTER table {}.{} AUTO_INCREMENT={}".format(
-                _router, self._meta.db_table, self.start_count_value)
-            cursor.execute(alter_str)
+#         cursor = connection.cursor()
+#         with transaction.atomic():
+#             _router = settings.DATABASES[router.db_for_write(self.__class__)]['NAME']
+#             alter_str = "ALTER table {}.{} AUTO_INCREMENT={}".format(
+#                 _router, self._meta.db_table, self.start_count_value)
+#             cursor.execute(alter_str)
 
 
 class UserManager(Manager):
@@ -79,7 +78,7 @@ class UserManager(Manager):
         return email.lower()
 
 
-class User(PermissionsMixin, Model):  # AutoFieldStartCountMixin,
+class User(PermissionsMixin, GUIDMixin, Model):  # AutoFieldStartCountMixin,
     start_count_value = 0  # 1000000  # for AutoFieldStartCountMixin
     offline_after = timedelta(seconds=60)
     """After this time from user's `last_seen`, user's `is_online` will return `False`"""
