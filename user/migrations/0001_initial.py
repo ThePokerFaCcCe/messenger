@@ -44,7 +44,6 @@ class Migration(migrations.Migration):
                 'verbose_name': 'user',
                 'verbose_name_plural': 'users',
             },
-            bases=(user.models.user.AutoFieldStartCountMixin, models.Model),
         ),
         migrations.CreateModel(
             name='VerifyCode',
