@@ -11,6 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         read_only_fields = [
             'full_name',
+            'guid',
             'profile_image',
             'last_seen',
             'is_online',
@@ -23,7 +24,6 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'bio',
-            'username',
         ] + read_only_fields
 
 
@@ -34,6 +34,7 @@ class UserStaffUpdateSerializer(serializers.ModelSerializer):
         model = User
         read_only_fields = [
             'full_name',
+            'guid',
             'profile_image',
             'last_seen',
             'is_online',
@@ -44,7 +45,6 @@ class UserStaffUpdateSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'bio',
-            'username',
             'is_staff',
             'is_scam',
         ] + read_only_fields
