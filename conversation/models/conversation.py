@@ -7,15 +7,15 @@ from django.utils.translation import gettext_lazy as _
 
 from conversation.models import PrivateChat
 
-
 User = settings.AUTH_USER_MODEL
 
 
-def get_model_type(model: Type[models.Model]) -> str:
+def get_model_type(model: Type[models.Model],
+                   instance=None) -> str:
     if issubclass(model, PrivateChat):
         return Conversation.TypeChoices.PRIVATE
 
-    return getattr(model, "type", None)
+    return getattr(instance, "type", None)
 
 
 class Conversation(models.Model):
@@ -37,7 +37,7 @@ class Conversation(models.Model):
 
     chat_content_type: ContentType = models.ForeignKey(
         to=ContentType, on_delete=models.CASCADE)
-    chat_id = models.PositiveIntegerField()
+    chat_id = models.BigIntegerField()
     chat = GenericForeignKey(
         ct_field="chat_content_type",
         fk_field="chat_id"
@@ -49,5 +49,5 @@ class Conversation(models.Model):
     def save(self, *args, **kwargs):
         if not self.type:
             model = self.chat_content_type.model_class()
-            self.type = get_model_type(model)
+            self.type = get_model_type(model, self.chat)
         super().save(*args, **kwargs)
