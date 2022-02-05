@@ -6,6 +6,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from conversation.models import PrivateChat
+from .manager.conversation_manager import ConversationManager
 
 User = settings.AUTH_USER_MODEL
 
@@ -19,6 +20,9 @@ def get_model_type(model: Type[models.Model],
 
 
 class Conversation(models.Model):
+
+    objects = ConversationManager()
+
     class TypeChoices(models.TextChoices):
         GROUP = 'GP', _('Group')
         PRIVATE = 'PV', _('Private')
