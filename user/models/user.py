@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.db.models.base import Model
 from django.db.models.fields import BooleanField, CharField, DateTimeField, EmailField
 from django.db.models.manager import Manager
+from django.db import models
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
@@ -91,6 +92,14 @@ class User(PermissionsMixin, GUIDMixin, Model):  # AutoFieldStartCountMixin,
 
     objects = UserManager()
 
+    class TypeChoices(models.TextChoices):
+        USER = 'U', _("User")
+        BOT = 'B', _("Bot")
+
+    type = CharField(_('User type'), max_length=1,
+                     choices=TypeChoices.choices,
+                     default=TypeChoices.USER)
+
     first_name = CharField(_('first name'), max_length=40)
     last_name = CharField(_('last name'), max_length=40, null=True)
     bio = CharField(_('Biography'), max_length=90, null=True)
@@ -105,10 +114,6 @@ class User(PermissionsMixin, GUIDMixin, Model):  # AutoFieldStartCountMixin,
     is_staff = BooleanField(_("is staff"),
                             help_text="Is user staff or not",
                             default=False)
-
-    is_bot = BooleanField(_("is bot"),
-                          help_text="Is user bot or not",
-                          default=False)
 
     is_active = BooleanField(_("is active"),
                              help_text="Is user active or not",
