@@ -23,7 +23,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   UserProfileMixin,
                   viewsets.GenericViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.prefetch_related("_guid").all()
     serializer_class = UserSerializer
     lookup_value_regex = r'[\d]+'
 
@@ -60,7 +60,6 @@ class SelfUserViewSet(mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
                       UserProfileMixin,
                       viewsets.GenericViewSet):
-    # queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
