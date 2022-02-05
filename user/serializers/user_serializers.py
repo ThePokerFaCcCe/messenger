@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
             'last_seen',
             'is_online',
             'is_staff',
-            'is_bot',
+            'type',
             'is_scam',
         ]
         fields = [
@@ -38,7 +38,7 @@ class UserStaffUpdateSerializer(serializers.ModelSerializer):
             'profile_image',
             'last_seen',
             'is_online',
-            'is_bot',
+            'type',
         ]
         fields = [
             'id',
