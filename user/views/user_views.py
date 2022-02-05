@@ -54,13 +54,6 @@ class UserViewSet(mixins.RetrieveModelMixin,
         serializer = self.get_serializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(['get'], detail=False, url_path='find/(?P<username>[^/.]+)')
-    def find(self, request, *args, **kwargs):
-        """Find user by `username`"""
-        self.lookup_field = 'username'
-        self.lookup_url_kwarg = 'username'
-        return self.retrieve(request, *args, **kwargs)
-
 
 @extend_schema_view(**USER_VIEW_SCHEMA)
 class SelfUserViewSet(mixins.RetrieveModelMixin,
