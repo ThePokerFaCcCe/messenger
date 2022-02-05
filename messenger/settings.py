@@ -90,6 +90,9 @@ INTERNAL_IPS = [  # It's for debug tool
     '127.0.0.1',
 ]
 
+GLOBAL_ID_CHAT_SERIALIZERS = {
+    'user.models.User': 'user.serializers.UserSerializer',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
