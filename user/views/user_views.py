@@ -13,7 +13,7 @@ from user.serializers import (UserSerializer,
                               UserStaffUpdateSerializer,
                               UserLastSeenSerializer,
                               UserProfileSerializer)
-
+from global_id.views.mixins import GUIDCRUDMixin
 
 User = get_user_model()
 
@@ -22,6 +22,7 @@ User = get_user_model()
 class UserViewSet(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   UserProfileMixin,
+                  GUIDCRUDMixin,
                   viewsets.GenericViewSet):
     queryset = User.objects.prefetch_related("_guid").all()
     serializer_class = UserSerializer
@@ -59,6 +60,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
 class SelfUserViewSet(mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
                       UserProfileMixin,
+                      GUIDCRUDMixin,
                       viewsets.GenericViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
