@@ -1,1 +1,1 @@
-from .guid_serializers import GUIDSerializer
+from .guid_serializers import GUIDSerializer, GUIDTextSerializer

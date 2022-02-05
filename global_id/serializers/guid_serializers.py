@@ -22,3 +22,11 @@ class GUIDSerializer(serializers.ModelSerializer):
             'guid',
             'chat',
         ]
+
+
+class GUIDTextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GUID
+        fields = [
+            'guid',
+        ]
