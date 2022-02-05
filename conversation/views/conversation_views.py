@@ -19,16 +19,14 @@ class ConversationViewSet(mixins.ListModelMixin,
     serializer_class = ConversationSerializer
 
     def get_queryset(self):
-        qs = Conversation.objects.filter(
-            user=self.request.user
-        )
+        qs = Conversation.objects.all()
 
         if self.action in ['retrieve', 'list']:
-            return qs.prefetch_related(
-                'chat__users', 'chat__creator'
-            )
+            qs = qs.auto_prefetch_next()
 
-        return qs
+        return qs.filter(
+            user=self.request.user
+        )
 
     def get_serializer_class(self):
         if self.action in ['pin', 'unpin']:
