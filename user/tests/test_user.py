@@ -1,49 +1,17 @@
-from django.test.testcases import TransactionTestCase
-from django.core.exceptions import ValidationError
+from django.test.testcases import TestCase
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.test import APITransactionTestCase
+from rest_framework.test import APITestCase
 from datetime import timedelta
 from unittest.mock import patch
 import time
 
 from auth_app.tests.utils import create_access
-from core.tests.utils import create_image
 from .utils.creators import create_user
 from .utils.callers import UserViewCaller
 
 
-class UserModelTest(TransactionTestCase):
-    # Reason of using TransactionTestCase:
-    # https://stackoverflow.com/a/43981107/14034832
-
-    def test_start_user_id(self):
-        user = create_user()
-        self.assertGreaterEqual(user.id, user.start_count_value)
-
-    def test_valid_username(self):
-        invalid_usernames = [
-            '$Matin_Kh>',
-            '_matinkh',
-            '0matinkh',
-            'matinkh_',
-            'matin__kh',
-            'matin_kh_n',
-            'mat',
-            'matin'*120,
-        ]
-
-        valid_usernames = [
-            'matin13_81khaleghi',
-            'matin1381kh',
-        ]
-        for un in invalid_usernames:
-            create_user(username=un)
-            self.assertRaises(ValidationError)
-
-        for un in valid_usernames:
-            create_user(username=un)
-
+class UserModelTest(TestCase):
     def test_is_online(self):
         user = create_user()
         user.set_online()
@@ -54,7 +22,7 @@ class UserModelTest(TransactionTestCase):
             self.assertEqual(user.is_online, False)
 
 
-class DeviceViewTest(APITransactionTestCase):
+class DeviceViewTest(APITestCase):
     caller: UserViewCaller
 
     def setUp(self):
@@ -276,11 +244,3 @@ class DeviceViewTest(APITransactionTestCase):
         self.caller.profile_image__delete(
             self.staff_access,
         )
-
-    def test_wrong_username__find(self):
-        self.caller.find__get(self.access, 'imnotexist123',
-                              status.HTTP_404_NOT_FOUND)
-
-    def test_success_username__find(self):
-        user = create_user(username='thepokerface')
-        self.caller.find__get(self.access, user.username)

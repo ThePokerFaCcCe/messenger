@@ -19,11 +19,6 @@ def user_detail_url(pk):
                    kwargs={'pk': pk})
 
 
-def user_find_url(username):
-    return reverse(f"{app_name}:user-find",
-                   kwargs={'username': username})
-
-
 def user_last_seen_url(pk):
     return reverse(f"{app_name}:user-last-seen",
                    kwargs={'pk': pk})
@@ -52,16 +47,6 @@ class UserViewCaller(BaseCaller):
             allowed_status, self.client.patch,
             user_detail_url(pk or create_user().pk),
             data=update_kwargs,
-            **self.get_auth_header(access_token)
-        )
-
-    def find__get(self, access_token, username,
-                  allowed_status=status.HTTP_200_OK
-                  ):
-        """Calls user-find view with GET method"""
-        return self.assert_status_code(
-            allowed_status, self.client.get,
-            user_find_url(username),
             **self.get_auth_header(access_token)
         )
 
