@@ -16,6 +16,12 @@ class GUIDMixin(models.Model):
         content_type_field="chat_content_type",
     )
 
+    def __clean_guid_attrs(self):
+        """set new&update guid attrs to None 
+        after saving"""
+        self.__new_guid = None
+        self.__update_guid = None
+
     @property
     def guid(self) -> Optional[str]:
         """Return guid text if exists else None"""
@@ -26,7 +32,6 @@ class GUIDMixin(models.Model):
     def guid(self, new_id: str):
         """Set new id for guid, it automatically
         creates GUID model if doesn't exists."""
-
         g_id = self._guid.first()
         if g_id is None:
             self.__new_guid = GUID(
@@ -50,6 +55,7 @@ class GUIDMixin(models.Model):
                 self._guid.add(g_id, bulk=False)
             elif (g_id := self.__update_guid):
                 g_id.save()
+            self.__clean_guid_attrs()
             return r
 
     class Meta:
