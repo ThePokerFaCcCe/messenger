@@ -1,3 +1,4 @@
+import sys
 from celery.schedules import crontab
 from pathlib import Path
 from decouple import config
@@ -207,3 +208,9 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour='*/1')
     }
 }
+
+
+if 'test' in sys.argv:
+    INSTALLED_APPS = INSTALLED_APPS+[
+        'global_id.tests'
+    ]

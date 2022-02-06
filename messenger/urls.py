@@ -1,3 +1,4 @@
+import sys
 from django.conf.urls.static import static
 from django.conf import settings
 from django.urls import path, include
@@ -20,4 +21,9 @@ if settings.DEBUG:
     import debug_toolbar
     urlpatterns += [
         path('__debug__/', include(debug_toolbar.urls)),
+    ]
+
+if 'test' in sys.argv:
+    urlpatterns += [
+        path('', include('global_id.tests.urls'))
     ]
