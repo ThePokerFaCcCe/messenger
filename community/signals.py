@@ -10,11 +10,12 @@ from conversation.tasks import create_conversation
 @receiver(post_save, sender=CommunityChat)
 def create_owner_member(sender, instance: CommunityChat,
                         created, **kwargs):
-    member_task = create_member.delay(
-        community_id=instance.pk,
-        user_id=instance.creator.pk,
-        rank=Member.RankChoices.OWNER
-    ).get(propagate=False)
+    if created:
+        member_task = create_member.delay(
+            community_id=instance.pk,
+            user_id=instance.creator.pk,
+            rank=Member.RankChoices.OWNER
+        ).get(propagate=False)
 
     check_task_failed(member_task, True, [instance])
 
@@ -22,8 +23,9 @@ def create_owner_member(sender, instance: CommunityChat,
 @receiver(post_save, sender=Member)
 def create_member_conversation(sender, instance: Member,
                                created, **kwargs):
-    conv_task = create_conversation(
-        chat=instance.community,
-        user_id=instance.user.pk
-    ).get(propagate=False)
-    check_task_failed(conv_task, True, [instance])
+    if created:
+        conv_task = create_conversation(
+            chat=instance.community,
+            user_id=instance.user.pk
+        ).get(propagate=False)
+        check_task_failed(conv_task, True, [instance])
