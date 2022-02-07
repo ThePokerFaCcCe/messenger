@@ -1,3 +1,4 @@
+from typing import Optional
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -25,7 +26,7 @@ class Member(models.Model):
     community = models.ForeignKey(to=CommunityChat,
                                   on_delete=models.CASCADE,
                                   related_name='members')
-    used_link = models.ForeignKey(
+    _used_link = models.ForeignKey(
         to=InviteLink, null=True, on_delete=models.SET_NULL,
         related_name='members_used',
         help_text=_(
@@ -33,12 +34,20 @@ class Member(models.Model):
             "joined by link"
         )
     )
-    is_joined_by_guid = models.BooleanField(
-        _("Is used guid"), default=False,
-        help_text=_("Is member joined by guid"))
+    used_guid = models.CharField(
+        _("Used guid"), null=True, blank=True,
+        max_length=60, help_text=_(
+            "The guid that member used to join if "
+            "joined by guid"
+        ))
+
+    @property
+    def used_link(self) -> Optional[str]:
+        if (link := self._used_link):
+            return link.link
 
     @property
     def joined_by(self) -> str:
-        if self.is_joined_by_guid:
-            return 'guid'
-        return 'link'
+        if self.used_guid:
+            return 'used_guid'
+        return 'used_link'
