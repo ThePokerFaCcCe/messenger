@@ -16,8 +16,7 @@ def create_owner_member(sender, instance: CommunityChat,
             user_id=instance.creator.pk,
             rank=Member.RankChoices.OWNER
         ).get(propagate=False)
-
-    check_task_failed(member_task, True, [instance])
+        check_task_failed(member_task, True, [instance])
 
 
 @receiver(post_save, sender=Member)
