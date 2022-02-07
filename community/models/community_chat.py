@@ -1,5 +1,6 @@
 from typing import Type
 from django.db import models
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -8,6 +9,8 @@ from picturic.fields import PictureField
 from global_id.models.mixins import GUIDMixin
 from .group_community import GroupCommunity
 from .mixins import NegativeUUIDMixin
+
+User = settings.AUTH_USER_MODEL
 
 
 def get_model_type(model: Type[models.Model]) -> str:
@@ -33,6 +36,10 @@ class CommunityChat(NegativeUUIDMixin, GUIDMixin, models.Model):
         _("Is deleted"), default=False,
         help_text=_("Is community deleted or not")
     )
+
+    creator = models.ForeignKey(
+        to=User, on_delete=models.SET_NULL, null=True,
+        related_name='created_communities')
 
     created_at = models.DateTimeField(auto_now_add=True)
 
