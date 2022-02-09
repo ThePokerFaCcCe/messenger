@@ -47,7 +47,9 @@ class Member(models.Model):
             return link.link
 
     @property
-    def joined_by(self) -> str:
+    def joined_by(self) -> Optional[str]:
         if self.used_guid:
             return 'used_guid'
-        return 'used_link'
+        if self._used_link:
+            return 'used_link'
+        return None
