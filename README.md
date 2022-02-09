@@ -13,7 +13,7 @@ Database design idea: https://github.com/yoosuf/Messenger
 
 3 - Create virtual environment and install packages using `py -m pipenv install` in cloned directory
 
-4 - Create `messenger` database in your mysql server
+~4 - Create `messenger` database in your mysql server~
 
 5 - Create `.env` file in cloned directory and copy & replace `.env.example` with right data into it.
 
