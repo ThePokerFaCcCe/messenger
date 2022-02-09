@@ -81,7 +81,6 @@ def schema_generator(data: dict):
     for k, v in data.items():
 
         if isinstance(v, dict):
-            print(v)
             data[k] = schema_generator(v)
 
         elif isinstance(v, (list, tuple, set)):

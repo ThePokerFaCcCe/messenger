@@ -38,11 +38,7 @@ class ConversationQuerySet(QuerySet):
         necessary prefetch_relateds will be called"""
 
         queryset = super().filter(*args, **kwargs)
-        print(kwargs)
-        print(self.__class__.__name__)
-        print('1-', self.__prefetch_next)
         if self.__prefetch_next:
-            print('prefed!')
             self.__prefetch_next = False
 
             self.__prefetch_types(queryset)
