@@ -6,12 +6,6 @@ https://pythonrepo.com/repo/Bearle-django_private_chat2
 https://channels.readthedocs.io/en/stable/tutorial/part_2.html
 https://dev.to/earthcomfy/introduction-to-web-sockets-3n7m
 
-Add global id tests
-Add community chat tests
-Add group community tests
-Add group rules tests
-Add invite link tests
-Add member tests
 Add conversation custom queryset tests
 
 Add expire for invite links
