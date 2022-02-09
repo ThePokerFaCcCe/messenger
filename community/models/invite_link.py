@@ -11,7 +11,7 @@ from . import CommunityChat
 class InviteLink(models.Model):
     link = models.CharField(
         _("Invite link"), default=generate_invite_link,
-        db_index=True, unique=True,
+        auto_created=True, db_index=True, unique=True,
         max_length=INVITE_LINK_MAX_LENGTH,
         validators=[
             validators.RegexValidator(INVITE_LINK_REGEX),
