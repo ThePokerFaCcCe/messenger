@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from user.serializers import UserSerializer
@@ -5,7 +6,6 @@ from community.models import Member
 
 
 common_fields = [
-    'id',
     "rank",
     "user",
 ]
@@ -29,3 +29,17 @@ class MemberSerializer(serializers.ModelSerializer):
             "used_link",
             "joined_by",
         ]
+
+
+class MemberUpdateSerializer(serializers.ModelSerializer):
+    default_error_messages = {
+        'owner_rank': _("You cannot set Owner rank to member")
+    }
+
+    class Meta:
+        model = Member
+        fields = ['rank']
+
+    def validate_rank(self, rank):
+        if rank == Member.RankChoices.OWNER:
+            self.fail('owner_rank')
