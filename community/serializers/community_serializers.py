@@ -6,11 +6,19 @@ from user.serializers import UserSerializer
 import community.serializers.group_serializers as gp_serializers
 
 
+def count_members(instance: CommunityChat) -> int:
+    count = getattr(instance, 'members_count', None)
+    if count is None:
+        count = instance.objects.members.count()
+    return count
+
+
 class CommunityChatSerializer(serializers.ModelSerializer):
     community = GenericRelatedField({
         GroupCommunity: gp_serializers.GroupCommunitySerializer()
     })
     creator = UserSerializer()
+    members_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CommunityChat
@@ -19,6 +27,7 @@ class CommunityChatSerializer(serializers.ModelSerializer):
             'profile_image',
             'creator',
             'community',
+            'members_count'
             'created_at'
         ]
 
@@ -28,6 +37,9 @@ class CommunityChatSerializer(serializers.ModelSerializer):
             'name',
             'description',
         ] + read_only_fields
+
+    def get_members_count(self, instance) -> int:
+        return count_members(instance)
 
 
 class CommunityChatInfoSerializer(serializers.ModelSerializer):
