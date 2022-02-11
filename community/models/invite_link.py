@@ -32,6 +32,11 @@ class InviteLink(models.Model):
         _("Deleted at"), null=True, blank=True,
         auto_created=True)
 
+    def soft_delete(self):
+        if not self.is_deleted:
+            self.is_deleted = True
+            self.save()
+
     def save(self, *args, **kwargs):
         if self.is_deleted and self.deleted_at is None:
             self.deleted_at = timezone.now()
