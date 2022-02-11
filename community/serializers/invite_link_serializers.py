@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from community.utils import count_members
 from community.models import InviteLink
 import community.serializers.member_serializers as member_serializers
 import community.serializers.community_serializers as community_serializers
@@ -17,11 +18,11 @@ class InviteLinkInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = InviteLink
         fields = common_fields
+        read_only_fields = fields
 
 
 class InviteLinkSerializer(serializers.ModelSerializer):
-    members_used = member_serializers\
-        .MemberInfoSerializer(many=True, read_only=True)
+    members_count = serializers.SerializerMethodField()
     community = community_serializers\
         .CommunityChatInfoSerializer(read_only=True)
 
@@ -29,16 +30,21 @@ class InviteLinkSerializer(serializers.ModelSerializer):
         model = InviteLink
         fields = common_fields + [
             'community',
-            "members_used",
+            "members_count",
         ]
+
+    def get_members_count(self, instance) -> int:
+        return count_members(instance, 'members_used')
 
 
 class InviteLinkMemberInfoSerializer(serializers.ModelSerializer):
-    members_used = member_serializers\
-        .MemberInfoSerializer(many=True, read_only=True)
+    members_count = serializers.SerializerMethodField()
 
     class Meta:
         model = InviteLink
         fields = common_fields + [
-            "members_used",
+            "members_count",
         ]
+
+    def get_members_count(self, instance) -> int:
+        return count_members(instance, 'members_used')
