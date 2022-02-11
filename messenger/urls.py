@@ -9,6 +9,7 @@ urlpatterns = [
     path('api/v1/auth/', include("auth_app.urls")),
     path('api/v1/conversation/', include("conversation.urls")),
     path('api/v1/guid/', include("global_id.urls")),
+    path('api/v1/community/', include("community.urls")),
 ]\
     + [  # Docs & Schema
         path("api/v1/schema/", SpectacularAPIView.as_view(), name='schema'),
