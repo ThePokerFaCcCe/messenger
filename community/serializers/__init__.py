@@ -1,7 +1,8 @@
 from .group_rules_serializers import GroupRulesSerializer
 from .group_serializers import GroupCommunitySerializer
 from .invite_link_serializers import (InviteLinkInfoSerializer,
-                                      InviteLinkSerializer)
+                                      InviteLinkSerializer,
+                                      InviteLinkMemberInfoSerializer)
 from .member_serializers import (MemberInfoSerializer, MemberSerializer,
                                  MemberUpdateSerializer)
 from .community_serializers import (CommunityChatInfoSerializer,

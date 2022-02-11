@@ -31,3 +31,14 @@ class InviteLinkSerializer(serializers.ModelSerializer):
             'chat',
             "members_used",
         ]
+
+
+class InviteLinkMemberInfoSerializer(serializers.ModelSerializer):
+    members_used = member_serializers\
+        .MemberInfoSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = InviteLink
+        fields = common_fields + [
+            "members_used",
+        ]
