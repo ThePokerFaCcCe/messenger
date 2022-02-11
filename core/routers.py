@@ -1,4 +1,5 @@
 from rest_framework.routers import DynamicRoute, Route, DefaultRouter
+from rest_framework_nested.routers import NestedMixin
 
 
 class NoLookupRouter(DefaultRouter):
@@ -95,4 +96,9 @@ class NoLookupNestedMixin:
 
 class NestedNoLookupRouter(NoLookupNestedMixin, NoLookupRouter):
     """Nested router for NoLookupRouter"""
+    pass
+
+
+class NestedJustFirstLookupRouter(NestedMixin, NoLookupRouter):
+    """Nested no lookup router that only contains parent lookup"""
     pass
