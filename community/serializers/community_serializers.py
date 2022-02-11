@@ -1,17 +1,11 @@
 from rest_framework import serializers
 from generic_relations.relations import GenericRelatedField
 
+from community.utils import count_members
 from picturic.serializer_fields import PictureField
 from community.models import CommunityChat, GroupCommunity
 from user.serializers import UserSerializer
 import community.serializers.group_serializers as gp_serializers
-
-
-def count_members(instance: CommunityChat) -> int:
-    count = getattr(instance, 'members_count', None)
-    if count is None:
-        count = instance.members.count()
-    return count
 
 
 class CommunityChatSerializer(serializers.ModelSerializer):
