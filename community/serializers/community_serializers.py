@@ -69,3 +69,13 @@ class CommunityChatInfoSerializer(serializers.ModelSerializer):
             'creator',
             'created_at'
         ]
+
+
+class CommunityChatUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommunityChat
+        fields = [
+            'id',
+            'name',
+            'description',
+        ]

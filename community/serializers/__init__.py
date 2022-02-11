@@ -6,4 +6,5 @@ from .invite_link_serializers import (InviteLinkInfoSerializer,
 from .member_serializers import (MemberInfoSerializer, MemberSerializer,
                                  MemberUpdateSerializer)
 from .community_serializers import (CommunityChatInfoSerializer,
-                                    CommunityChatSerializer)
+                                    CommunityChatSerializer,
+                                    CommunityChatUpdateSerializer)
