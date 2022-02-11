@@ -22,13 +22,13 @@ class InviteLinkInfoSerializer(serializers.ModelSerializer):
 class InviteLinkSerializer(serializers.ModelSerializer):
     members_used = member_serializers\
         .MemberInfoSerializer(many=True, read_only=True)
-    chat = community_serializers\
+    community = community_serializers\
         .CommunityChatInfoSerializer(read_only=True)
 
     class Meta:
         model = InviteLink
         fields = common_fields + [
-            'chat',
+            'community',
             "members_used",
         ]
 

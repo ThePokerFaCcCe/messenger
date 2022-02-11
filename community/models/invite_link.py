@@ -18,9 +18,9 @@ class InviteLink(SoftDeleteMixin, models.Model):
             validators.RegexValidator(INVITE_LINK_REGEX),
         ])
 
-    chat = models.ForeignKey(to=CommunityChat, null=True,
-                             on_delete=models.SET_NULL,
-                             related_name='invite_links')
+    community = models.ForeignKey(to=CommunityChat, null=True,
+                                  on_delete=models.SET_NULL,
+                                  related_name='invite_links')
 
     created_at = models.DateTimeField(_('Created at'),
                                       auto_now_add=True)
