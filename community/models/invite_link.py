@@ -3,12 +3,13 @@ from django.core import validators
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
+from core.models.mixins import SoftDeleteMixin
 from .utils import (generate_invite_link, INVITE_LINK_REGEX,
                     INVITE_LINK_MAX_LENGTH)
 from . import CommunityChat
 
 
-class InviteLink(models.Model):
+class InviteLink(SoftDeleteMixin, models.Model):
     link = models.CharField(
         _("Invite link"), default=generate_invite_link,
         auto_created=True, db_index=True, unique=True,
@@ -21,21 +22,11 @@ class InviteLink(models.Model):
                              on_delete=models.SET_NULL,
                              related_name='invite_links')
 
-    is_deleted = models.BooleanField(
-        _("Is deleted"), default=False,
-        help_text=_("Is link deleted or not")
-    )
-
     created_at = models.DateTimeField(_('Created at'),
                                       auto_now_add=True)
     deleted_at = models.DateTimeField(
         _("Deleted at"), null=True, blank=True,
         auto_created=True)
-
-    def soft_delete(self):
-        if not self.is_deleted:
-            self.is_deleted = True
-            self.save()
 
     def save(self, *args, **kwargs):
         if self.is_deleted and self.deleted_at is None:

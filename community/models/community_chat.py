@@ -4,6 +4,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from core.models.mixins import SoftDeleteMixin
 
 from picturic.fields import PictureField
 from global_id.models.mixins import GUIDMixin
@@ -18,7 +19,7 @@ def get_model_type(model: Type[models.Model]) -> str:
         return CommunityChat.TypeChoices.GROUP
 
 
-class CommunityChat(NegativeUUIDMixin, GUIDMixin, models.Model):
+class CommunityChat(NegativeUUIDMixin, SoftDeleteMixin, GUIDMixin, models.Model):
 
     class TypeChoices(models.TextChoices):
         GROUP = 'GP', _('Group')
@@ -32,10 +33,6 @@ class CommunityChat(NegativeUUIDMixin, GUIDMixin, models.Model):
                                    null=True, blank=True)
     profile_image = PictureField(use_upload_to_func=True,
                                  make_thumbnail=True, null=True)
-    is_deleted = models.BooleanField(
-        _("Is deleted"), default=False,
-        help_text=_("Is community deleted or not")
-    )
 
     creator = models.ForeignKey(
         to=User, on_delete=models.SET_NULL, null=True,
