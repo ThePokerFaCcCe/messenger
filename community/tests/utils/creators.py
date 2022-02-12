@@ -29,8 +29,8 @@ def create_member(community_chat: CommunityChat = None,
     )
 
 
-def create_invite_link(chat: CommunityChat = None,
+def create_invite_link(community: CommunityChat = None,
                        **kwargs) -> InviteLink:
     return InviteLink.objects.create(
-        chat=chat or create_community_chat()
+        community=community or create_community_chat()
     )
