@@ -4,7 +4,8 @@ from rest_framework.test import APITestCase
 
 from conversation.models import Conversation
 from conversation.tests.utils.callers import ConversationViewCaller
-
+from core.tests.utils import assert_items_are_same_as_data
+from core.utils import get_list_of_dict_values
 from user.tests.utils import create_active_user
 from auth_app.tests.utils import create_access
 from .utils import create_conversation, create_private_chat
@@ -42,24 +43,20 @@ delete
         self.access = create_access(user=self.user
                                     ).encrypted_token
 
-    def __get_pks(self, data):
-        return [d.get('id') for d in data]
-
     def test_list_all_convs(self):
         convs = [create_conversation(user=self.user).pk,
                  create_conversation(user=self.user).pk]
 
         res = self.caller.list__get(self.access)
 
-        pks = self.__get_pks(res.data)
-        self.assertTrue(all(c in pks for c in convs))
+        assert_items_are_same_as_data(items=convs, data=res.data)
 
     def test_list_not_show_others_conv(self):
         c1 = create_conversation(user=self.user).pk
         c2 = create_conversation().pk
 
         res = self.caller.list__get(self.access)
-        pks = self.__get_pks(res.data)
+        pks = get_list_of_dict_values(res.data, 'id')
 
         self.assertIn(c1, pks)
         self.assertNotIn(c2, pks)
