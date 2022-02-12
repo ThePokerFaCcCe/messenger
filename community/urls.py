@@ -3,13 +3,15 @@ from rest_framework_nested.routers import NestedDefaultRouter
 from rest_framework.routers import DefaultRouter
 from core.routers import NestedJustFirstLookupRouter
 
+from community.apps import CommunityConfig
 from community.views import (CommunityChatViewSet, InviteLinkNestedViewSet,
                              MemberNestedViewSet, RulesNestedViewSet)
 
+app_name = CommunityConfig.name
 basename = 'community-'
 
 router = DefaultRouter()
-router.register('', CommunityChatViewSet, basename='commnuity')
+router.register('', CommunityChatViewSet, basename='community')
 
 n_router = NestedDefaultRouter(router, '', lookup='community')
 n_router.register('invite-link', InviteLinkNestedViewSet, basename=basename+'invite-link')
