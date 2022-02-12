@@ -1,5 +1,5 @@
 from django.db.models import Count
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, permissions
 
 from community.permissions import IsCommunityAdminMember, IsCommunityNormalMember
 from community.models import CommunityChat
@@ -33,6 +33,8 @@ class CommunityChatViewSet(mixins.RetrieveModelMixin,
     def get_permissions(self):
         if self.action in ['update', 'partial_update']:
             return [IsCommunityAdminMember()]
+        if self.action == 'create':
+            return [permissions.IsAuthenticated()]
         return [IsCommunityNormalMember()]
 
     def perform_destroy(self, instance):
