@@ -38,7 +38,4 @@ class IsCommunityNormalMember(permissions.IsAuthenticated):
     def has_permission(self, request, view):
         if super().has_permission(request, view):
             member = get_member(request, view)
-            print(member)
-            print(member.rank)
-            print(member.rank >= 2)
             return member and member.rank >= Member.RankChoices.NORMAL
