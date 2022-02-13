@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from core.views.mixins import NestedViewMixin
 from community.serializers import MemberSerializer, MemberUpdateSerializer
 from community.models import Member
-from community.permissions import IsCommunityAdminMember, IsCommunityNormalMember
+from community.permissions import HasHigherRankThanMember, IsCommunityAdminMember, IsCommunityNormalMember, IsNotCommunitySelfMember
 
 
 class MemberNestedViewSet(
@@ -37,8 +37,10 @@ class MemberNestedViewSet(
         return MemberSerializer
 
     def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'ban']:
-            return [IsCommunityAdminMember()]
+        if self.action not in ['list', 'retrieve']:
+            return [IsCommunityAdminMember(),
+                    IsNotCommunitySelfMember(),
+                    HasHigherRankThanMember()]
         return [IsCommunityNormalMember()]
 
     @action(['post'], detail=True)
