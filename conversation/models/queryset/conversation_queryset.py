@@ -27,7 +27,7 @@ class ConversationQuerySet(QuerySet):
             #     communities.append(conv)
 
         prefetch_related_objects(
-            pvs, 'chat__users__guid', 'chat__creator__guid'
+            pvs, 'chat__users___guid', 'chat__creator___guid'
         )
 
         # prefetch_related_objects(communities,
