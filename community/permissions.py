@@ -20,22 +20,35 @@ def get_member(request, view) -> Optional[Member]:
     ).first()
 
 
-class IsCommunityOwnerMember(permissions.IsAuthenticated):
+class MemberRankPermissionMixin(permissions.IsAuthenticated):
+    def check_rank(self, rank) -> bool: raise NotImplementedError()
+
     def has_permission(self, request, view):
         if super().has_permission(request, view):
             member = get_member(request, view)
-            return member and member.rank == Member.RankChoices.OWNER
+            return member and self.check_rank(member.rank)
 
 
-class IsCommunityAdminMember(permissions.IsAuthenticated):
-    def has_permission(self, request, view):
-        if super().has_permission(request, view):
-            member = get_member(request, view)
-            return member and member.rank >= Member.RankChoices.ADMIN
+class IsCommunityOwnerMember(MemberRankPermissionMixin):
+    def check_rank(self, rank) -> bool:
+        return rank == Member.RankChoices.OWNER
 
 
-class IsCommunityNormalMember(permissions.IsAuthenticated):
-    def has_permission(self, request, view):
-        if super().has_permission(request, view):
-            member = get_member(request, view)
-            return member and member.rank >= Member.RankChoices.NORMAL
+class IsCommunityAdminMember(MemberRankPermissionMixin):
+    def check_rank(self, rank) -> bool:
+        return rank >= Member.RankChoices.ADMIN
+
+
+class IsCommunityNormalMember(MemberRankPermissionMixin):
+    def check_rank(self, rank) -> bool:
+        return rank >= Member.RankChoices.NORMAL
+
+
+class IsNotCommunitySelfMember(permissions.IsAuthenticated):
+    def has_object_permission(self, request, view, obj: Member):
+        return request.user != obj.user
+
+
+class HasHigherRankThanMember(permissions.IsAuthenticated):
+    def has_object_permission(self, request, view, obj: Member):
+        return get_member(request, view).rank > obj.rank
