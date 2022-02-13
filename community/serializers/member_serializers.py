@@ -43,3 +43,4 @@ class MemberUpdateSerializer(serializers.ModelSerializer):
     def validate_rank(self, rank):
         if rank == Member.RankChoices.OWNER:
             self.fail('owner_rank')
+        return rank
