@@ -6,7 +6,9 @@ https://pythonrepo.com/repo/Bearle-django_private_chat2
 https://channels.readthedocs.io/en/stable/tutorial/part_2.html
 https://dev.to/earthcomfy/introduction-to-web-sockets-3n7m
 
-Add conversation custom queryset tests
+connect community view to conversation view
+improve community schema
+improve conversation schema
 
 Add expire for invite links
 
