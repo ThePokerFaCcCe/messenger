@@ -130,6 +130,16 @@ class CommunityViewTest(test.APITransactionTestCase):
             self.access, self.normal_member.user.pk,
             self.comm, rank=RANKS.ADMIN)
 
+    def test_self_admin_ban_itself_fail(self):
+        self.caller.ban__member(
+            self.access, self.user.pk, self.comm,
+            allowed_status=status.HTTP_403_FORBIDDEN)
+
+    def test_self_owner_unrank_itself_fail(self):
+        self.caller.pupdate__member(
+            self.access, self.user.pk, self.comm,
+            rank=RANKS.NORMAL, allowed_status=status.HTTP_403_FORBIDDEN)
+
     def test_make_member_owner(self):
         self.caller.pupdate__member(
             self.access, self.normal_member.user.pk, self.comm,
@@ -143,6 +153,12 @@ class CommunityViewTest(test.APITransactionTestCase):
     def test_ban_member(self):
         self.caller.ban__member(
             self.access, self.normal_member.user.pk, self.comm
+        )
+
+    def test_ban_owner_by_admin_fail(self):
+        self.caller.ban__member(
+            self.admin_access, self.user.pk, self.comm,
+            allowed_status=status.HTTP_403_FORBIDDEN
         )
 
     def test_fail_ban_by_normal_member(self):
