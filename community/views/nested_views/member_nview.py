@@ -34,6 +34,8 @@ class MemberNestedViewSet(
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:
             return MemberUpdateSerializer
+        if self.action == 'ban':
+            return None
         return MemberSerializer
 
     def get_permissions(self):
