@@ -10,9 +10,9 @@ connect community view to conversation view
 improve community schema
 improve conversation schema
 
-Add expire for invite links
+GUIDs on prefetch_related have bugs
 
-Create community view
+Add expire for invite links
 
 Create message model
 

@@ -18,20 +18,20 @@ class ConversationQuerySet(QuerySet):
         types = conversation.Conversation.TypeChoices
 
         pvs = []
-        # communities = []
+        communities = []
 
         for conv in queryset:
             if conv.type == types.PRIVATE:
                 pvs.append(conv)
-            # else:
-            #     communities.append(conv)
+            else:
+                communities.append(conv)
 
         prefetch_related_objects(
             pvs, 'chat__users___guid', 'chat__creator___guid'
         )
 
-        # prefetch_related_objects(communities,
-        #                          'chat__community')
+        prefetch_related_objects(
+            communities, 'chat__creator___guid')
 
     def filter(self, *args, **kwargs):
         """if `.auto_prefetch_next` method was called before,

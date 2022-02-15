@@ -1,14 +1,17 @@
 from rest_framework import serializers
 from generic_relations.relations import GenericRelatedField
 
+from community.models import CommunityChat
+from community.serializers import CommunityChatInfoSerializer
 from conversation.models import Conversation, PrivateChat
 from .pvchat_serializers import PrivateChatSerializer
 
 
 class ConversationSerializer(serializers.ModelSerializer):
     chat = GenericRelatedField({
-        PrivateChat: PrivateChatSerializer()
-    })
+        PrivateChat: PrivateChatSerializer(),
+        CommunityChat: CommunityChatInfoSerializer(),
+    }, read_only=True)
 
     class Meta:
         model = Conversation
