@@ -1,8 +1,11 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from ..manager import SoftDeleteManager
+
 
 class SoftDeleteMixin(models.Model):
+    objects = SoftDeleteManager()
 
     is_deleted = models.BooleanField(
         _("Is deleted"), default=False,

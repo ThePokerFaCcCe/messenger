@@ -1,1 +1,2 @@
 from .encrypted_token import EncryptedTokenManager
+from .soft_delete_manager import SoftDeleteManager
