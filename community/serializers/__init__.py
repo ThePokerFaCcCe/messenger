@@ -8,3 +8,4 @@ from .member_serializers import (MemberInfoSerializer, MemberSerializer,
 from .community_serializers import (CommunityChatInfoSerializer,
                                     CommunityChatSerializer,
                                     CommunityChatUpdateSerializer)
+from .join_serializers import JoinCommunitySerializer
