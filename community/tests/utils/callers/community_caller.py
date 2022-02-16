@@ -181,7 +181,7 @@ class CommunityViewCaller(BaseCaller):
 
     def ban__member(self, access_token, pk=None,
                     community: CommunityChat = None,
-                    allowed_status=status.HTTP_200_OK):
+                    allowed_status=status.HTTP_204_NO_CONTENT):
         """Calls member-ban view with POST method"""
         return self.assert_status_code(
             allowed_status, self.client.post,

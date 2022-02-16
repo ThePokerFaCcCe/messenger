@@ -50,4 +50,4 @@ class MemberNestedViewSet(
         member = self.get_object()
         member.rank = Member.RankChoices.BANNED
         member.save()
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
