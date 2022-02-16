@@ -2,9 +2,11 @@ from django.test.testcases import TransactionTestCase
 from rest_framework import test, status
 from django.contrib.contenttypes.models import ContentType
 
+from conversation.models import Conversation
 from core.utils import get_list_of_dict_values
 from core.tests.utils import assert_items_are_same_as_data
 from community.models import CommunityChat, Member
+from community.models.utils import generate_invite_link
 from auth_app.tests.utils import create_access
 from .utils import create_community_chat, create_member, create_invite_link
 from .utils.callers import CommunityViewCaller
@@ -55,12 +57,14 @@ class CommunityViewTest(test.APITransactionTestCase):
         self.user = access.user
         self.access = access.encrypted_token
         self.comm = create_community_chat(creator=self.user)
-
+        self.link = create_invite_link(self.comm)
         self.normal_access, self.normal_member\
             = self.__create_member_access(RANKS.NORMAL)
-
         self.admin_access, self.admin_member\
             = self.__create_member_access(RANKS.ADMIN)
+        anonymous_access = create_access(activate_user=True)
+        self.anonymous_access = anonymous_access.encrypted_token
+        self.anonymous_user = anonymous_access.user
 
     def test_create_group_community(self):
         self.caller.create__post(self.access)
@@ -173,3 +177,86 @@ class CommunityViewTest(test.APITransactionTestCase):
         self.caller.pupdate__rules(
             self.normal_access, self.comm,
             allowed_status=status.HTTP_403_FORBIDDEN)
+
+    def __join_anonymus_to_link(self, status=status.HTTP_204_NO_CONTENT):
+        self.caller.post__join(self.anonymous_access, invite_link=self.link.link,
+                               allowed_status=status)
+
+    def __find_anonymous_member(self) -> Member:
+        return Member.objects.filter(
+            community=self.comm, user=self.anonymous_user).first()
+
+    def test_join_success(self):
+        self.__join_anonymus_to_link()
+
+    def test_join_creates_member(self):
+        comm = self.comm
+
+        old_count = comm.members.count()
+        self.__join_anonymus_to_link()
+
+        comm.refresh_from_db()
+        self.assertGreater(
+            comm.members.count(), old_count,
+            msg="members doesn't increased"
+        )
+
+        mem = self.__find_anonymous_member()
+        self.assertIsNotNone(
+            mem, 'member for user on join not created')
+
+    def test_join_creates_conv(self):
+        self.__join_anonymus_to_link()
+
+        conv = Conversation.objects.filter(
+            chat_id=self.comm.pk,
+            user=self.anonymous_user).first()
+
+        self.assertIsNotNone(
+            conv, 'conv for member on join not created')
+
+    def test_join_by_link(self):
+        self.__join_anonymus_to_link()
+
+        link = self.__find_anonymous_member().used_link
+
+        self.assertIsNotNone(
+            link, 'used_link for member is none')
+
+        self.assertEqual(link, self.link.link)
+
+    def test_join_by_guid(self):
+        guid = 'iamthguid'
+        self.comm.guid = guid
+        self.comm.save()
+        self.caller.post__join(self.anonymous_access, guid=guid)
+
+        used_guid = self.__find_anonymous_member().used_guid
+        self.assertIsNotNone(
+            used_guid, 'used_guid for member is none')
+
+        self.assertEqual(used_guid, guid)
+
+    def test_join_on_already_joined(self):
+        self.__join_anonymus_to_link()
+        self.__join_anonymus_to_link(status.HTTP_400_BAD_REQUEST)
+
+    def test_join_when_banned(self):
+        self.__join_anonymus_to_link()
+        self.caller.ban__member(
+            self.access, self.anonymous_user.pk, self.comm)
+        self.__join_anonymus_to_link(status.HTTP_400_BAD_REQUEST)
+
+    def test_join_with_both_values(self):
+        self.caller.post__join(
+            self.anonymous_access, guid='imthguid',
+            invite_link=self.link.link,
+            allowed_status=status.HTTP_400_BAD_REQUEST
+        )
+
+    def test_join_with_bad_link(self):
+        self.caller.post__join(
+            self.anonymous_access,
+            invite_link=generate_invite_link(),
+            allowed_status=status.HTTP_400_BAD_REQUEST
+        )

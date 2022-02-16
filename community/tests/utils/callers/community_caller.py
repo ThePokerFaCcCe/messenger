@@ -9,6 +9,7 @@ from ..creators import create_community_chat, create_invite_link, create_member
 
 COMM_TYPES = CommunityChat.TypeChoices
 COMM_LIST_URL = reverse_lazy(f"{app_name}:community-list")
+COMM_JOIN_URL = reverse_lazy(f"{app_name}:community-join")
 
 name_nested = f"{app_name}:community-"
 
@@ -164,6 +165,17 @@ class CommunityViewCaller(BaseCaller):
         return self.assert_status_code(
             allowed_status, self.client.delete,
             member_detail_url(pk, community),
+            ** self.get_auth_header(access_token)
+        )
+
+    def post__join(self, access_token,
+                   allowed_status=status.HTTP_204_NO_CONTENT,
+                   **join_kwargs):
+        """Calls community-join view with POST method"""
+        return self.assert_status_code(
+            allowed_status, self.client.post,
+            COMM_JOIN_URL,
+            data=join_kwargs,
             ** self.get_auth_header(access_token)
         )
 
