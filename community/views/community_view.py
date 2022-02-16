@@ -5,14 +5,18 @@ from community.permissions import IsCommunityAdminMember, IsCommunityNormalMembe
 from community.models import CommunityChat
 from community.serializers import (CommunityChatSerializer,
                                    CommunityChatUpdateSerializer)
+from .mixins import CommunityJoinMixin
 
 
 class CommunityChatViewSet(mixins.RetrieveModelMixin,
                            mixins.UpdateModelMixin,
                            mixins.DestroyModelMixin,
                            mixins.CreateModelMixin,
+                           CommunityJoinMixin,
                            viewsets.GenericViewSet):
     queryset = CommunityChat.objects.all()
+    serializer_class = CommunityChatSerializer
+    permission_classes = [IsCommunityNormalMember]
     lookup_field = 'id'
 
     def get_queryset(self):
@@ -28,14 +32,14 @@ class CommunityChatViewSet(mixins.RetrieveModelMixin,
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:
             return CommunityChatUpdateSerializer
-        return CommunityChatSerializer
+        return super().get_serializer_class()
 
     def get_permissions(self):
         if self.action in ['update', 'partial_update']:
             return [IsCommunityAdminMember()]
         if self.action == 'create':
             return [permissions.IsAuthenticated()]
-        return [IsCommunityNormalMember()]
+        return super().get_permissions()
 
     def perform_destroy(self, instance):
         instance.soft_delete()
