@@ -25,7 +25,7 @@ class GUID(models.Model):
 
     chat_content_type: ContentType = models.ForeignKey(
         to=ContentType, on_delete=models.CASCADE)
-    chat_id = models.PositiveIntegerField()
+    chat_id = models.BigIntegerField()
     chat = GenericForeignKey(
         ct_field="chat_content_type",
         fk_field="chat_id"
