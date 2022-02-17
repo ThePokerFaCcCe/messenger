@@ -28,3 +28,11 @@ def create_member(community_id, user_id,
     Member.objects.create(
         community_id=community_id, user_id=user_id,
         rank=rank, **join_data)
+
+
+@task
+def delete_community_members(community_id) -> list[int]:
+    mems = Member.objects.filter(community_id=community_id)
+    uids = list(mems.values_list('user__id', flat=True))
+    mems.delete()
+    return uids
