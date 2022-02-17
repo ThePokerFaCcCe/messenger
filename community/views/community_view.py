@@ -5,7 +5,7 @@ from community.permissions import IsCommunityAdminMember, IsCommunityNormalMembe
 from community.models import CommunityChat
 from community.serializers import (CommunityChatSerializer,
                                    CommunityChatUpdateSerializer)
-from .mixins import CommunityJoinMixin
+from .mixins import CommunityJoinMixin, CommunityLeaveMixin
 
 
 class CommunityChatViewSet(mixins.RetrieveModelMixin,
@@ -13,6 +13,7 @@ class CommunityChatViewSet(mixins.RetrieveModelMixin,
                            mixins.DestroyModelMixin,
                            mixins.CreateModelMixin,
                            CommunityJoinMixin,
+                           CommunityLeaveMixin,
                            viewsets.GenericViewSet):
     queryset = CommunityChat.objects.all()
     serializer_class = CommunityChatSerializer
