@@ -260,3 +260,59 @@ class CommunityViewTest(test.APITransactionTestCase):
             invite_link=generate_invite_link(),
             allowed_status=status.HTTP_400_BAD_REQUEST
         )
+
+    def __leave_comm(self, access=None, comm=None,
+                     status=status.HTTP_204_NO_CONTENT):
+        self.caller.post__leave(
+            access or self.normal_access,
+            comm.pk if comm else self.comm.pk,
+            allowed_status=status)
+
+    def test_leave_deletes_member(self):
+        self.__leave_comm()
+        self.assertRaises(
+            Member.DoesNotExist,
+            self.normal_member.refresh_from_db)
+
+    def test_leave_deletes_conv(self):
+        self.__leave_comm()
+        self.assertIsNone(
+            Conversation.objects.filter(
+                chat_id=self.comm.pk,
+                user=self.normal_member.user
+            ).first(),
+            msg='member conv not deleted after leaving'
+        )
+
+    def test_leave_banned(self):
+        banned_access, _ = self.__create_member_access(RANKS.BANNED)
+        self.__leave_comm(banned_access,
+                          status=status.HTTP_403_FORBIDDEN)
+
+    def test_leave_owner_deletes_community(self):
+        self.__leave_comm(self.access)
+        self.assertIsNotNone(
+            CommunityChat.objects
+            .filter_deleted(pk=self.comm.pk)
+            .first()
+        )
+
+    def test_leave_owner_deletes_members(self):
+        comm_pk = self.comm.pk
+        self.__leave_comm(self.access)
+        self.assertFalse(
+            Member.objects.filter(
+                community_id=comm_pk
+            ).exists(),
+            msg="members not deleted after deleting community"
+        )
+
+    def test_leave_owner_deletes_convs(self):
+        comm_pk = self.comm.pk
+        self.__leave_comm(self.access)
+        self.assertFalse(
+            Conversation.objects.filter(
+                chat_id=comm_pk
+            ).exists(),
+            msg="convs not deleted after deleting community"
+        )

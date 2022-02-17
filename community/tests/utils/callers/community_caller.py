@@ -20,6 +20,12 @@ def comm_detail_url(pk=None, creator=None):
     })
 
 
+def comm_leave_url(pk=None):
+    return reverse(f"{app_name}:community-leave", kwargs={
+        'id': pk or create_community_chat().pk
+    })
+
+
 def get_nested_community(community=None):
     community = community or create_community_chat()
     return community, {'community_id': community.pk}
@@ -176,6 +182,15 @@ class CommunityViewCaller(BaseCaller):
             allowed_status, self.client.post,
             COMM_JOIN_URL,
             data=join_kwargs,
+            ** self.get_auth_header(access_token)
+        )
+
+    def post__leave(self, access_token, pk=None,
+                    allowed_status=status.HTTP_204_NO_CONTENT):
+        """Calls community-leave view with POST method"""
+        return self.assert_status_code(
+            allowed_status, self.client.post,
+            comm_leave_url(pk=pk),
             ** self.get_auth_header(access_token)
         )
 
