@@ -44,6 +44,11 @@ class IsCommunityNormalMember(MemberRankPermissionMixin):
         return rank >= Member.RankChoices.NORMAL
 
 
+class IsCommunityMember(MemberRankPermissionMixin):
+    def check_rank(self, rank) -> bool:
+        return rank >= Member.RankChoices.RESTRICTED
+
+
 class IsNotCommunitySelfMember(permissions.IsAuthenticated):
     def has_object_permission(self, request, view, obj: Member):
         return request.user != obj.user
