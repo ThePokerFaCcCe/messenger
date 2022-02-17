@@ -53,3 +53,6 @@ class Member(models.Model):
         if self._used_link:
             return 'used_link'
         return None
+
+    class Meta:
+        unique_together = ['user', 'community']
