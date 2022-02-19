@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'auth_app',
     'picturic',
     'global_id',
+    "message",
 ]
 
 
