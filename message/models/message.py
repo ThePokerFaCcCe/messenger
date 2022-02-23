@@ -11,7 +11,8 @@ from core.models.mixins import SoftDeleteMixin
 class Message(SoftDeleteMixin, models.Model):
 
     chat_content_type = models.ForeignKey(
-        to=ContentType, on_delete=models.CASCADE)
+        to=ContentType, on_delete=models.CASCADE,
+        related_name='+')
     chat_id = models.BigIntegerField()
     chat = GenericForeignKey(
         ct_field="chat_content_type",
@@ -30,7 +31,8 @@ class Message(SoftDeleteMixin, models.Model):
     content_type = models.CharField(_("Content type"), max_length=10, db_index=True,
                                     choices=ContentTypeChoices.choices)
     content_content_type = models.ForeignKey(
-        to=ContentType, on_delete=models.CASCADE)
+        to=ContentType, on_delete=models.CASCADE,
+        related_name='+')
     content_id = models.BigIntegerField()
     content = GenericForeignKey(
         ct_field="content_content_type",
