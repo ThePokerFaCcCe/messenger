@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 
     'corsheaders',
 
+    'channels',
     'rest_framework',
     'rest_framework_nested',
     'drf_spectacular',
@@ -210,6 +211,24 @@ CELERYBEAT_SCHEDULE = {
     }
 }
 
+# Channels
+# https://channels.readthedocs.io/en/stable/introduction.html
+
+ASGI_APPLICATION = 'messenger.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            'hosts': [(
+                config('CHANNEL_REDIS_HOST'),
+                config('CHANNEL_REDIS_PORT')
+            )]
+        }
+    }
+}
+
+
+# Test
 
 if 'test' in sys.argv:
     INSTALLED_APPS = INSTALLED_APPS+[
