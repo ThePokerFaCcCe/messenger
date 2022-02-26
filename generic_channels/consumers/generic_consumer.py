@@ -1,16 +1,11 @@
 from typing import Callable, Iterable, Optional, Union
-from functools import lru_cache
 from dotmap import DotMap
-import re
 from asgiref.sync import async_to_sync
 from django.utils.translation import gettext_lazy as _
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.exceptions import DenyConnection, InvalidChannelLayerError
 
-
-@lru_cache(maxsize=30)
-def validate_regex(text, regex=r'^[\w]+$') -> bool:
-    return bool(re.match(regex, text))
+from generic_channels.serializers import ConsumerContentSerializer
 
 
 class ChannelGroupsMixin:
@@ -51,6 +46,15 @@ class ChannelGroupsMixin:
 
 
 class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
+    '''
+    Sent data by user should look like this example:
+    ```
+    {
+        "action" : "action_name",
+        "body"   : {"k1":"v1", "k2":{...}, ...}
+    }
+    ```
+    '''
     class GlobalActions:
         CONNECT = '__connect__'
     __default_error_messages = {
@@ -58,9 +62,6 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         "action_404": _("Action not found"),
         'perm_denied': _("You don't have permissions to perform this action")
     }
-    action_field = 'action'
-    action_regex_validator = r'^[a-z]+[_.]?[a-z]+$'
-
     default_error_messages = {}
     serializer_class = None
     permission_classes = []
@@ -111,24 +112,41 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
     def close(self, code=None):
         return super().close(code)
 
+    def validate_received_content(self, content) -> Optional[dict]:
+        """Validate json content with serializer"""
+        serializer = ConsumerContentSerializer(data=content)
+        if not serializer.is_valid():
+            return self.error(serializer.errors)
+        return serializer.validated_data
+
+    def receive(self, text_data=None, bytes_data=None, **kwargs):
+        """
+        Validates text data and calls 
+        `self.receive_json` with validated data
+        """
+        if text_data:
+            content = self.validate_received_content(
+                self.decode_json(text_data)
+            )
+            if content:
+                self.receive_json(content, **kwargs)
+        else:
+            raise ValueError("No text section for incoming WebSocket frame!")
+
     def receive_json(self, content: dict, **kwargs):
-        """Receives json data from client & calls the action method"""
-
+        """
+        Receives validated json data from client
+        and calls the action method
+        """
         self.call_action_method(content)
-
-    def validate_action(self, action_name: str) -> bool:
-        """Validate action name with `action_regex_validator`"""
-        return validate_regex(action_name, self.action_regex_validator)
 
     def get_action(self, content: dict) -> Optional[str]:
         """Return the validated action of content
 
         e.g.: ChaT.message -> chat_message"""
 
-        action = content.get(self.action_field, '')\
+        return content.get('action', '')\
             .replace('.', '_').lower()
-        if self.validate_action(action):
-            return action
 
     def get_action_method(self, content: dict) -> tuple[Optional[Callable], Optional[str]]:
         """Return action method if found. if action was `chat_send`, then 
