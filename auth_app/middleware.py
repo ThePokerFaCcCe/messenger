@@ -17,7 +17,7 @@ class TokenAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
         try:
             token_key = dict(scope['headers']).get(b"token").decode()
-        except ValueError:
+        except (ValueError, AttributeError):
             token_key = None
         scope['user'] = AnonymousUser() if token_key is None else await get_user(token_key)
 
