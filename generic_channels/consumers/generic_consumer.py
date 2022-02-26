@@ -1,10 +1,11 @@
-from typing import Callable, Optional, Union
+from typing import Callable, Iterable, Optional, Union
 from functools import lru_cache
 from dotmap import DotMap
 import re
+from asgiref.sync import async_to_sync
 from django.utils.translation import gettext_lazy as _
 from channels.generic.websocket import JsonWebsocketConsumer
-from channels.exceptions import DenyConnection
+from channels.exceptions import DenyConnection, InvalidChannelLayerError
 
 
 @lru_cache(maxsize=30)
@@ -12,7 +13,44 @@ def validate_regex(text, regex=r'^[\w]+$') -> bool:
     return bool(re.match(regex, text))
 
 
-class GenericConsumer(JsonWebsocketConsumer):
+class ChannelGroupsMixin:
+    def __call_layer(self, func: Callable, *fargs, **fkwargs):
+        """
+        Call channel_layer methods in synchronous mode
+        and check for errors
+        """
+        try:
+            return async_to_sync(func)(*fargs, **fkwargs)
+        except AttributeError:
+            raise InvalidChannelLayerError(
+                "BACKEND is unconfigured or doesn't support groups"
+            )
+
+    def group_join(self, group_name: str):
+        """Join channel to a group"""
+        group_name = str(group_name)
+        if group_name in self.groups:
+            return
+        self.__call_layer(self.channel_layer.group_add,
+                          group_name, self.channel_name)
+        self.groups.append(group_name)
+
+    def group_leave(self, group_name: str):
+        """Remove channel from a group"""
+        group_name = str(group_name)
+        if group_name not in self.groups:
+            return
+        self.__call_layer(self.channel_layer.group_discard,
+                          group_name, self.channel_name)
+        self.groups.remove(group_name)
+
+    def groups_join(self, group_names: Iterable[str]):
+        """Join channel to list of groups"""
+        for group in group_names:
+            self.group_join(group)
+
+
+class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
     class GlobalActions:
         CONNECT = '__connect__'
     __default_error_messages = {
