@@ -172,7 +172,7 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         if not self.has_permissions(action, content):
             return
 
-        method(content)
+        method(content, action=action)
 
     def permission_denied(self, detail=None):
         self.error(detail) if detail \
@@ -191,25 +191,31 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
                     return self.permission_denied()
         return True
 
-    def get_serializer_context(self, content):
+    def get_serializer_context(self, action, content):
         """Return serializer's context"""
 
         return {
-            'user': self.scope.get('user')
+            'user': self.scope.user,
+            'scope': self.scope,
+            'consumer': self,
+
+            # Added for compability with drf view serializers
+            'request': self.scope,
+            'view': self,
         }
 
-    def get_serializer(self, content, *serializer_args,
+    def get_serializer(self, action, content, *serializer_args,
                        **serializer_kwargs):
         """Call & return serializer"""
 
-        serializer = self.get_serializer_class(content)
+        serializer = self.get_serializer_class(action, content)
         if serializer:
             serializer_kwargs.setdefault(
-                "context", self.get_serializer_context(content)
+                "context", self.get_serializer_context(action, content)
             )
             return serializer(*serializer_args, **serializer_kwargs)
 
-    def get_serializer_class(self, content):
+    def get_serializer_class(self, action, content):
         """Return serializer class"""
 
         serializer = self.serializer_class
