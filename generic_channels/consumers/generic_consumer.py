@@ -4,6 +4,7 @@ from dotmap import DotMap
 import re
 from django.utils.translation import gettext_lazy as _
 from channels.generic.websocket import JsonWebsocketConsumer
+from channels.exceptions import DenyConnection
 
 
 @lru_cache(maxsize=30)
@@ -12,6 +13,8 @@ def validate_regex(text, regex=r'^[\w]+$') -> bool:
 
 
 class GenericConsumer(JsonWebsocketConsumer):
+    class GlobalActions:
+        CONNECT = '__connect__'
     __default_error_messages = {
         'unexpected': _("An unexpected error occured"),
         "action_404": _("Action not found"),
@@ -62,7 +65,10 @@ class GenericConsumer(JsonWebsocketConsumer):
         self.error(detail)
 
     def connect(self):
-        return super().connect()
+        super().connect()
+        if not self.has_permissions(self.GlobalActions.CONNECT, {}):
+            self.close(1008)
+            raise DenyConnection()
 
     def close(self, code=None):
         return super().close(code)
