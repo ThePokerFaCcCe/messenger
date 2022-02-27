@@ -4,8 +4,10 @@ from asgiref.sync import async_to_sync
 from django.utils.translation import gettext_lazy as _
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.exceptions import DenyConnection, InvalidChannelLayerError
+from rest_framework.exceptions import APIException
 
 from generic_channels.serializers import ConsumerContentSerializer
+from ..exceptions import ValidationError
 
 
 class ChannelGroupsMixin:
@@ -93,17 +95,25 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
             "detail": detail or self.default_error_messages.get('unexpected', '')
         })
 
-    def fail(self, detail_key: str, *fargs, **fkwargs):
-        """Call `.error()` method with detail that found in 
-        `default_error_messages`"""
-
-        detail = self.default_error_messages.get(detail_key, None)
-        assert detail is not None, (
-            f"detail_key of `{detail_key}` not found in "
-            f"`default_error_messages` of `{self.__class__.__name__}`"
+    def fail(self, detail_key: str = None,
+             detail: str = None, *fargs, **fkwargs):
+        """
+        Call `.error()` method with either `detail_key` that found in 
+        `default_error_messages` or `detail` string and raises exception
+        """
+        _kwargs = [detail, detail_key]
+        assert not all(_kwargs) and any(_kwargs), (
+            "You should set only one of `detail` or `detail_key` kwargs "
+            f"in `{self.__class__.__name__}`"
         )
+        if detail_key:
+            detail = self.default_error_messages.get(detail_key, None)
+            assert detail is not None, (
+                f"detail_key of `{detail_key}` not found in "
+                f"`default_error_messages` of `{self.__class__.__name__}`"
+            )
         detail = detail.format(*fargs, **fkwargs)
-        self.error(detail)
+        raise ValidationError(detail=detail)
 
     def success(self, content, detail: Union[str, dict] = None):
         """Send success message to client"""
@@ -114,9 +124,25 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
             "detail": detail or None
         })
 
+    def __handle_exception(self, func: Callable, *fargs, **fkwargs) -> bool:
+        """
+        Call function and handle some exceptions.
+        returns True if no exceptions raised
+        """
+        try:
+            func(*fargs, **fkwargs)
+            return True
+        except APIException as e:
+            self.error(e.detail)
+        except Exception:
+            self.fail("unexpected")
+
     def connect(self):
         super().connect()
-        if not self.has_permissions(self.GlobalActions.CONNECT, {}):
+        if not self.__handle_exception(
+            self.has_permissions,
+            self.GlobalActions.CONNECT, {}
+        ):
             self.close(1008)
             raise DenyConnection()
 
@@ -149,7 +175,9 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         Receives validated json data from client
         and calls the action method
         """
-        self.call_action_method(content)
+        self.__handle_exception(
+            self.call_action_method, content
+        )
 
     def get_action(self, content: dict) -> Optional[str]:
         """Return the validated action of content
@@ -178,15 +206,13 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
 
         method, action = self.get_action_method(content)
         if method is None:
-            return self.fail('action_404')
-
-        if not self.has_permissions(action, content):
-            return
+            self.fail('action_404')
+        self.has_permissions(action, content)
 
         method(content, action=action)
 
     def permission_denied(self, detail=None):
-        self.error(detail) if detail \
+        self.fail(detail=detail) if detail \
             else self.fail('perm_denied')
 
     def get_permissions(self, action: str, content: dict) -> list:
@@ -199,8 +225,7 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         if perms:
             for perm in perms:
                 if not perm.has_permission(self.scope, self):
-                    return self.permission_denied()
-        return True
+                    self.permission_denied()
 
     def get_serializer_context(self, action, content):
         """Return serializer's context"""
