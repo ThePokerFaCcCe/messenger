@@ -7,4 +7,5 @@ class ConsumerContentSerializer(serializers.Serializer):
         error_messages={
             "invalid": 'Only [a-z] chars and one of ["." or "_"] are allowed'
         })
-    body = serializers.DictField(required=False)
+    body = serializers.DictField(required=False, default={})
+    query = serializers.DictField(required=False, default={})

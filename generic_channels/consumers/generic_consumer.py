@@ -51,7 +51,8 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
     ```
     {
         "action" : "action_name",
-        "body"   : {"k1":"v1", "k2":{...}, ...}
+        "body"   : {"k1":"v1", "k2":{...}, ...},
+        "query"  : {"k1":"v1",...},
     }
     ```
     '''
@@ -60,7 +61,8 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
     __default_error_messages = {
         'unexpected': _("An unexpected error occured"),
         "action_404": _("Action not found"),
-        'perm_denied': _("You don't have permissions to perform this action")
+        'perm_denied': _("You don't have permissions to perform this action"),
+        "404": "{item} Not found",
     }
     default_error_messages = {}
     serializer_class = None
@@ -102,6 +104,15 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         )
         detail = detail.format(*fargs, **fkwargs)
         self.error(detail)
+
+    def success(self, content, detail: Union[str, dict] = None):
+        """Send success message to client"""
+
+        self.send_json({
+            'action': content.get("action"),
+            "status": "success",
+            "detail": detail or None
+        })
 
     def connect(self):
         super().connect()
