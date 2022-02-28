@@ -261,3 +261,11 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         )
 
         return serializer
+
+    def validate_serializer(self, serializer, action=None):
+        """
+        Calls `.is_valid` method of serializer
+        and raises exception if serializer isn't valid
+        """
+        if not serializer.is_valid():
+            raise ValidationError(serializer.errors, action=action)
