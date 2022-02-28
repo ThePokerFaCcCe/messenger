@@ -7,7 +7,7 @@ from channels.exceptions import DenyConnection, InvalidChannelLayerError
 from rest_framework.exceptions import APIException
 
 from generic_channels.serializers import ConsumerContentSerializer
-from ..exceptions import ValidationError
+from ..exceptions import ConsumerException, PermissionDenied, ValidationError
 
 
 class ChannelGroupsMixin:
@@ -63,7 +63,6 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
     __default_error_messages = {
         'unexpected': _("An unexpected error occured"),
         "action_404": _("Action not found"),
-        'perm_denied': _("You don't have permissions to perform this action"),
         "404": "{item} Not found",
     }
     default_error_messages = {}
@@ -89,14 +88,13 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
 
     def error(self, detail: Union[str, dict] = None):
         """Send error message to client"""
-
         self.send_json({
             "status": "error",
             "detail": detail or self.default_error_messages.get('unexpected', '')
         })
 
     def fail(self, detail_key: str = None,
-             detail: str = None, *fargs, **fkwargs):
+             detail: str = None, action=None, *fargs, **fkwargs):
         """
         Call `.error()` method with either `detail_key` that found in 
         `default_error_messages` or `detail` string and raises exception
@@ -113,7 +111,7 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
                 f"`default_error_messages` of `{self.__class__.__name__}`"
             )
         detail = detail.format(*fargs, **fkwargs)
-        raise ValidationError(detail=detail)
+        raise ValidationError(detail=detail, action=action)
 
     def success(self, content, detail: Union[str, dict] = None):
         """Send success message to client"""
@@ -132,10 +130,11 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         try:
             func(*fargs, **fkwargs)
             return True
-        except APIException as e:
+        except (APIException, ConsumerException) as e:
             self.error(e.detail)
-        except Exception:
-            self.fail("unexpected")
+        except Exception as e:
+            self.error(self.default_error_messages.get("unexpected"))
+            raise e
 
     def connect(self):
         super().connect()
@@ -211,9 +210,9 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
 
         method(content, action=action)
 
-    def permission_denied(self, detail=None):
-        self.fail(detail=detail) if detail \
-            else self.fail('perm_denied')
+    def permission_denied(self, detail=None, action=None):
+        """Raise `PermissionDenied` exception"""
+        raise PermissionDenied(detail=detail, action=action)
 
     def get_permissions(self, action: str, content: dict) -> list:
         """Return list of permissions"""
@@ -225,7 +224,7 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         if perms:
             for perm in perms:
                 if not perm.has_permission(self.scope, self):
-                    self.permission_denied()
+                    self.permission_denied(action=action)
 
     def get_serializer_context(self, action, content):
         """Return serializer's context"""
