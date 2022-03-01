@@ -166,6 +166,7 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
                 self.decode_json(text_data)
             )
             if content:
+                content = DotMap(content)
                 self.receive_json(content, **kwargs)
         else:
             raise ValueError("No text section for incoming WebSocket frame!")
@@ -217,7 +218,7 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         if not q_params:
             return
         errors = {}
-        q_content = content['query']
+        q_content = content.query
         for k, v in q_params.items():
             if k not in q_content:
                 errors[k] = f'should be in query data'
