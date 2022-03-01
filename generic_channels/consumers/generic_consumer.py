@@ -61,6 +61,7 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
     '''
     class GlobalActions:
         CONNECT = '__connect__'
+        EVENT = '__event__'
     __default_error_messages = {
         'unexpected': _("An unexpected error occured"),
         "action_404": _("Action not found"),
@@ -250,6 +251,15 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
 
         if errors:
             self.fail(detail=errors, action=action)
+
+    def event_send_message(self, event):
+        """
+        Remove 'type' key from event and set 'action'
+        key to `GlobalActions.EVENT` send it to client
+        """
+        event.pop("type")
+        event['action'] = self.GlobalActions.EVENT
+        self.send_json(event)
 
     def permission_denied(self, detail=None, action=None):
         """Raise `PermissionDenied` exception"""
