@@ -226,20 +226,17 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
 
             ktype = v.get('type')
             kregex = v.get("regex")
-            assert not all([ktype, kregex]) and any([ktype, kregex]), (
-                "One of either `type` or `regex` keys should set in "
-                f"`query_options` for `{action_method.__name__}` "
-                f"method in `{self.__class__.__name__}` class"
-            )
+
+            if kregex:
+                if not re.match(kregex, str(q_content[k])):
+                    errors[k] = f'isn\'t a valid value'
+                    continue
+
             if ktype:
                 try:
                     val = ktype(q_content[k])
                     q_content[k] = val
                 except ValueError:
-                    errors[k] = f'isn\'t a valid value'
-                    continue
-            elif kregex:
-                if not re.match(kregex, str(q_content[k])):
                     errors[k] = f'isn\'t a valid value'
                     continue
 

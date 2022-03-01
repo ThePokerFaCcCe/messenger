@@ -11,8 +11,6 @@ def options(query_params: dict):
         {
             # - REQUIRED:
 
-            # Only one of either `type` or `regex` should set
-            # if both set, AssertionError will be raised
             "type" : int,
             "regex":r'^(*)$', 
 
