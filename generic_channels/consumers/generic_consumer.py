@@ -1,7 +1,8 @@
+import re
 from typing import Callable, Iterable, Optional, Union
 from dotmap import DotMap
 from asgiref.sync import async_to_sync
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.exceptions import DenyConnection, InvalidChannelLayerError
 from rest_framework.exceptions import APIException
@@ -110,7 +111,7 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
                 f"detail_key of `{detail_key}` not found in "
                 f"`default_error_messages` of `{self.__class__.__name__}`"
             )
-        detail = detail.format(*fargs, **fkwargs)
+            detail = detail.format(*fargs, **fkwargs)
         raise ValidationError(detail=detail, action=action)
 
     def success(self, content, detail: Union[str, dict] = None):
@@ -207,8 +208,50 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         if method is None:
             self.fail('action_404')
         self.has_permissions(action, content)
-
+        self.validate_action_query_params(content, action, method)
         method(content, action=action)
+
+    def validate_action_query_params(self, content, action, action_method: Callable):
+        """Validate query params that exist in content's query key"""
+        q_params = getattr(action_method, 'query_params', None)
+        if not q_params:
+            return
+        errors = {}
+        q_content = content['query']
+        for k, v in q_params.items():
+            if k not in q_content:
+                errors[k] = f'should be in query data'
+                continue
+
+            ktype = v.get('type')
+            kregex = v.get("regex")
+            assert not all([ktype, kregex]) and any([ktype, kregex]), (
+                "One of either `type` or `regex` keys should set in "
+                f"`query_options` for `{action_method.__name__}` "
+                f"method in `{self.__class__.__name__}` class"
+            )
+            if ktype:
+                try:
+                    val = ktype(q_content[k])
+                    q_content[k] = val
+                except ValueError:
+                    errors[k] = f'isn\'t a valid value'
+                    continue
+            elif kregex:
+                if not re.match(kregex, str(q_content[k])):
+                    errors[k] = f'isn\'t a valid value'
+                    continue
+
+            if (queryset := v.get('queryset')):
+                lookup = v.get('lookup') or k
+                obj = queryset.filter(**{lookup: q_content[k]}).first()
+                if not obj:
+                    errors[k] = f'not found'
+                    continue
+                q_content[f"{k}_object"] = obj
+
+        if errors:
+            self.fail(detail=errors, action=action)
 
     def permission_denied(self, detail=None, action=None):
         """Raise `PermissionDenied` exception"""
