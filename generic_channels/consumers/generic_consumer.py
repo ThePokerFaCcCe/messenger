@@ -257,9 +257,11 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
         Remove 'type' key from event and set 'action'
         key to `GlobalActions.EVENT` send it to client
         """
-        event.pop("type")
+        # BIG LESSON: Never remove "type" key from event!
+        # event.pop("type", None)
+
         event['action'] = self.GlobalActions.EVENT
-        self.send_json(event)
+        self.send_json({k: v for k, v in event.items() if k != 'type'})
 
     def permission_denied(self, detail=None, action=None):
         """Raise `PermissionDenied` exception"""
