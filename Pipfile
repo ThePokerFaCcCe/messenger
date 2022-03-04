@@ -23,6 +23,7 @@ rest-framework-generic-relations = "*"
 channels = "==3.0.*"
 channels-redis = "==3.3.*"
 dotmap = "*"
+django-redis = "*"
 
 [dev-packages]
 autopep8 = "*"
