@@ -13,6 +13,7 @@ class MessengerConsumer(GenericConsumer):
     def connect(self):
         super().connect()
         self.groups_join(get_chat_ids(self.scope.user))
+        self.group_join(f'user_{self.scope.user.pk}')
 
     @options(query_params={"chat_id": {'type': int, 'regex': '^-?\d+$'}})
     def action_send_message(self, content, action, *args, **kwargs):
