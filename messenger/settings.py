@@ -230,6 +230,17 @@ CHANNEL_LAYERS = {
 }
 
 
+# CACHE
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': config('REDIS_CACHE_LOCATION'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+CACHE_TTL = 60 * 15  # 15 Minutes
 # Test
 
 if 'test' in sys.argv:
