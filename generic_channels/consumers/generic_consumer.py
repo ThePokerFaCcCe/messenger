@@ -48,7 +48,34 @@ class ChannelGroupsMixin:
             self.group_join(group)
 
 
-class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
+class DefaultEventsMixin:
+
+    def event_send_message(self, event):
+        """
+        Remove 'type' key from event and set 'action'
+        key to `GlobalActions.EVENT` send it to client
+        """
+        # BIG LESSON: Never remove "type" key from event!
+        # event.pop("type", None)
+
+        event['action'] = self.GlobalActions.EVENT
+        self.send_json({k: v for k, v in event.items() if k != 'type'})
+
+    def event_group_join(self, event):
+        """Add consumer to given group"""
+
+        if(name := event.get('group_name')):
+            self.group_join(name)
+
+    def event_group_leave(self, event):
+        """Remove consumer from given group"""
+
+        if(name := event.get('group_name')):
+            self.group_leave(name)
+
+
+class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
+                      JsonWebsocketConsumer):
     '''
     Sent data by user should look like this example:
     ```
@@ -251,17 +278,6 @@ class GenericConsumer(ChannelGroupsMixin, JsonWebsocketConsumer):
 
         if errors:
             self.fail(detail=errors, action=action)
-
-    def event_send_message(self, event):
-        """
-        Remove 'type' key from event and set 'action'
-        key to `GlobalActions.EVENT` send it to client
-        """
-        # BIG LESSON: Never remove "type" key from event!
-        # event.pop("type", None)
-
-        event['action'] = self.GlobalActions.EVENT
-        self.send_json({k: v for k, v in event.items() if k != 'type'})
 
     def permission_denied(self, detail=None, action=None):
         """Raise `PermissionDenied` exception"""
