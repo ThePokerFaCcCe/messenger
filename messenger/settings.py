@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'picturic',
     'global_id',
     "message",
+    'generic_channels',
+    'messenger_channels',
 ]
 
 
