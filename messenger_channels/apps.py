@@ -1,9 +1,9 @@
 from django.apps import AppConfig
 
 
-class ConversationConfig(AppConfig):
+class MessengerChannelsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'conversation'
+    name = 'messenger_channels'
 
     def ready(self) -> None:
         from . import signals

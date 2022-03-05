@@ -45,5 +45,7 @@ class MessageSerializer(serializers.ModelSerializer):
     def save(self, **kwargs):
         if(content := self.validated_data.pop('content', None)):
             content = content.save()
-            kwargs['content_id'] = content.pk
+
+            kwargs['content'] = content
+
         return super().save(**kwargs)

@@ -17,7 +17,7 @@ class PrivateChatSerializer(serializers.ModelSerializer):
         ]
 
     def get_user(self, pv: PrivateChat):
-        if (view := self.context.get('view')):
-            self_user = view.request.user
+        if (request := self.context.get('request')):
+            self_user = request.user
             if (another := pv.get_reciever_user(self_user)):
                 return UserSerializer(another).data

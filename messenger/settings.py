@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 
     'corsheaders',
 
+    'channels',
     'rest_framework',
     'rest_framework_nested',
     'drf_spectacular',
@@ -51,6 +52,8 @@ INSTALLED_APPS = [
     'picturic',
     'global_id',
     "message",
+    'generic_channels',
+    'messenger_channels',
 ]
 
 
@@ -210,6 +213,35 @@ CELERYBEAT_SCHEDULE = {
     }
 }
 
+# Channels
+# https://channels.readthedocs.io/en/stable/introduction.html
+
+ASGI_APPLICATION = 'messenger.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            'hosts': [(
+                config('CHANNEL_REDIS_HOST'),
+                config('CHANNEL_REDIS_PORT')
+            )]
+        }
+    }
+}
+
+
+# CACHE
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': config('REDIS_CACHE_LOCATION'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+CACHE_TTL = 60 * 15  # 15 Minutes
+# Test
 
 if 'test' in sys.argv:
     INSTALLED_APPS = INSTALLED_APPS+[

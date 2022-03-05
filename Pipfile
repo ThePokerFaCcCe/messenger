@@ -20,6 +20,10 @@ encrypt-decrypt-fields = "*"
 celery = "==5.*"
 redis = "==4.*"
 rest-framework-generic-relations = "*"
+channels = "==3.0.*"
+channels-redis = "==3.3.*"
+dotmap = "*"
+django-redis = "*"
 
 [dev-packages]
 autopep8 = "*"
