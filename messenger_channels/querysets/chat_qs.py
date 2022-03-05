@@ -42,7 +42,7 @@ def get_validated_chat_id(chat_id, user_id) -> Optional[int]:
     pv_id = cache.get(cache_key)
 
     if not pv_id:
-        pv = get_or_create_pvchat(chat_id, user_id)
+        pv = get_or_create_pvchat(user_id, chat_id)
         if not pv:
             return
         pv_id = pv.pk
