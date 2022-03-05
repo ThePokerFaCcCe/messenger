@@ -17,6 +17,13 @@ class MessengerConsumer(GenericConsumer):
 
     @options(query_params={"chat_id": {'type': int, 'regex': '^-?\d+$'}})
     def action_send_message(self, content, action, *args, **kwargs):
+        """
+        Create message for chat.
+
+        BUG:
+        - first message for new privatechats won't send because
+          the chat_id isn't still in groups list.
+        """
         chat_id = get_validated_chat_id(content.query.chat_id,
                                         self.scope.user.pk)
         if str(chat_id) not in self.groups:
