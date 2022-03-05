@@ -4,7 +4,6 @@ Messenger REST API backend with django and django rest framework.
 
 Database design idea: https://github.com/yoosuf/Messenger
 
-
 # Installation
 
 1 - Clone project
@@ -26,3 +25,9 @@ Database design idea: https://github.com/yoosuf/Messenger
 9 - Start server with `py manage.py runserver` command
 
 10- open http://127.0.0.1:8000/api/v1/docs/ in your browser
+
+# KNOWN BUGS
+
+**[messenger_consumer.py](https://github.com/ThePokerFaCcCe/messenger/blob/channels/messenger_channels/consumers/messenger_consumer.py)**:
+
+-first message for new privatechats won't send because the chat_id isn't still in groups list.

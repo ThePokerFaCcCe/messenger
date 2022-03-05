@@ -40,7 +40,7 @@ def get_validated_chat_id(chat_id, user_id) -> Optional[int]:
     cache_key = f'pv_{chat_id}_{user_id}'
     cache_key = cache_key if cache_key in cache else f'pv_{user_id}_{chat_id}'
     pv_id = cache.get(cache_key)
-
+    pv_id = None
     if not pv_id:
         pv = get_or_create_pvchat(user_id, chat_id)
         if not pv:
