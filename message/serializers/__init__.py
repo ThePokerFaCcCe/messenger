@@ -1,2 +1,3 @@
 from .text_content_serializer import TextContentSerializer
 from .message_serializers import MessageSerializer
+from .deleted_msg_serializer import DeletedMessageSerializer, HardDeletedMessageSerializer
