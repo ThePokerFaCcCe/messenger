@@ -18,11 +18,11 @@ def get_chat_messages(chat_id, user_id) -> QuerySet:
     )
 
 
-def delete_message(msg_id, user_id) -> DeletedMessage:
+def delete_message(msg_id, user_id) -> tuple[DeletedMessage, bool]:
     """
-    deletes a message for specified user and
-    returns DeletedMessage instance
+    Deletes a message for specified user if not deleted already 
+    and returns DeletedMessage instance
     """
-    return DeletedMessage.objects.create(
+    return DeletedMessage.objects.get_or_create(
         user_id=user_id, message_id=msg_id
     )
