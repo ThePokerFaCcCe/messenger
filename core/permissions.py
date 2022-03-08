@@ -20,5 +20,7 @@ class IsOwnerOfItem(permissions.BasePermission):
             obj_user = obj.user
         elif hasattr(obj, 'owner'):
             obj_user = obj.owner
+        elif hasattr(obj, 'sender'):
+            obj_user = obj.sender
 
         return obj_user == req.user
