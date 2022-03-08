@@ -1,4 +1,5 @@
 import re
+from traceback import print_tb
 from typing import Callable, Iterable, Optional, Union
 from dotmap import DotMap
 from asgiref.sync import async_to_sync
@@ -163,6 +164,8 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
         except (APIException, ConsumerException) as e:
             self.error(e.detail)
         except Exception as e:
+            print_tb(e.__traceback__)
+            print(e)
             self.error(self.default_error_messages.get("unexpected"))
             raise e
 
@@ -237,8 +240,8 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
         method, action = self.get_action_method(content)
         if method is None:
             self.fail('action_404')
-        self.has_permissions(action, content)
         self.validate_action_query_params(content, action, method)
+        self.has_permissions(action, content)
         method(content, action=action)
 
     def validate_action_query_params(self, content, action, action_method: Callable):
@@ -283,6 +286,7 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
                     if not qs.exists():
                         errors[k] = f'not found'
                         continue
+                    self.has_object_permissions(action, content, qs.first())
                     q_content[f"{k}_queryset"] = qs
 
         if not errors and depends:
@@ -295,6 +299,7 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
                 if not qs.exists():
                     errors[k] = f'not found'
                     continue
+                self.has_object_permissions(action, content, qs.first())
                 q_content[f"{k}_queryset"] = qs
 
         if errors:
@@ -308,12 +313,20 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
         """Return list of permissions"""
         return [permission() for permission in self.permission_classes]
 
-    def has_permissions(self, action: str, content: dict) -> bool:
+    def has_permissions(self, action: str, content: dict):
         """Check for all permissions are allowed"""
         perms = self.get_permissions(action, content)
         if perms:
             for perm in perms:
-                if not perm.has_permission(self.scope, self):
+                if not perm.has_permission((content | self.scope), self):
+                    self.permission_denied(action=action)
+
+    def has_object_permissions(self, action: str, content: dict, obj):
+        """Check for all object permissions are allowed"""
+        perms = self.get_permissions(action, content)
+        if perms:
+            for perm in perms:
+                if not perm.has_object_permission((content | self.scope), self, obj):
                     self.permission_denied(action=action)
 
     def get_serializer_context(self, action, content):
