@@ -95,8 +95,9 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
         "404": "{item} Not found",
     }
     default_error_messages = {}
-    serializer_class = None
     permission_classes = []
+    serializer_class = None
+    filter_query_lookup = 'pk'
 
     __scope = None
 
@@ -246,21 +247,19 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
         if not q_params:
             return
         errors = {}
+        depends = {}
         q_content = content.query
         for k, v in q_params.items():
             if k not in q_content:
                 errors[k] = f'should be in query data'
                 continue
 
-            ktype = v.get('type')
-            kregex = v.get("regex")
-
-            if kregex:
+            if (kregex := v.get("regex")):
                 if not re.match(kregex, str(q_content[k])):
                     errors[k] = f'isn\'t a valid value'
                     continue
 
-            if ktype:
+            if (ktype := v.get('type')):
                 try:
                     val = ktype(q_content[k])
                     q_content[k] = val
@@ -268,13 +267,35 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
                     errors[k] = f'isn\'t a valid value'
                     continue
 
+            if (kvalidator := v.get('validator')):
+                stats, val = kvalidator(q_content[k], self)
+                if not stats:
+                    errors[k] = val
+                    continue
+                q_content[k] = val
+
             if (queryset := v.get('queryset')):
-                lookup = v.get('lookup') or k
-                obj = queryset.filter(**{lookup: q_content[k]}).first()
-                if not obj:
+                lookup = v.get('lookup') or self.filter_query_lookup
+                qs = queryset.filter(**{lookup: q_content[k]})
+                if (v_depends := v.get('depends')):
+                    depends[k] = {'qs': qs, 'depends': v_depends}
+                else:
+                    if not qs.exists():
+                        errors[k] = f'not found'
+                        continue
+                    q_content[f"{k}_queryset"] = qs
+
+        if not errors and depends:
+            for k, v in depends.items():
+
+                qs = v["qs"]
+                for lookup in v['depends']:
+                    qs = qs.filter(**{lookup: q_content.get(lookup)})
+
+                if not qs.exists():
                     errors[k] = f'not found'
                     continue
-                q_content[f"{k}_object"] = obj
+                q_content[f"{k}_queryset"] = qs
 
         if errors:
             self.fail(detail=errors, action=action)
