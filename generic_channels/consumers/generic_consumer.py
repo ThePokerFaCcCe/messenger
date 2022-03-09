@@ -182,7 +182,10 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
         method(content, action=action)
 
     def validate_action_query_params(self, content, action, action_method: Callable):
-        """Validate query params that exist in content's query key"""
+        """
+        Validate query params that exist in content's query key 
+        by `query_params` that set in `@options` decorator
+        """
         q_params = getattr(action_method, 'query_params', None)
         if not q_params:
             return
@@ -220,14 +223,10 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
                 if (v_depends := v.get('depends')):
                     depends[k] = {'qs': qs, 'depends': v_depends}
                 else:
-                    if not qs.exists():
-                        errors[k] = f'not found'
+                    if not self.__validate_queryset_q_content(
+                            action, content, q_content, errors, qs, k
+                    ):
                         continue
-                    obj = qs.first()
-                    self.has_object_permissions(action, content, obj)
-                    q_content[f"{k}_queryset"] = qs
-                    q_content[f"{k}_object"] = obj
-
         if not errors and depends:
             for k, v in depends.items():
 
@@ -235,16 +234,26 @@ class GenericConsumer(ChannelGroupsMixin, DefaultEventsMixin,
                 for lookup in v['depends']:
                     qs = qs.filter(**{lookup: q_content.get(lookup)})
 
-                if not qs.exists():
-                    errors[k] = f'not found'
+                if not self.__validate_queryset_q_content(
+                    action, content, q_content, errors, qs, k
+                ):
                     continue
-                obj = qs.first()
-                self.has_object_permissions(action, content, obj)
-                q_content[f"{k}_queryset"] = qs
-                q_content[f"{k}_object"] = obj
 
         if errors:
             self.fail(detail=errors, action=action)
+
+    def __validate_queryset_q_content(self, action, content, q_content, errors,
+                                      queryset, key) -> bool:
+        if not queryset.exists():
+            errors[key] = f'not found'
+            return False
+
+        obj = queryset.first()
+        self.has_object_permissions(action, content, obj)
+
+        q_content[f"{key}_queryset"] = queryset
+        q_content[f"{key}_object"] = obj
+        return True
 
     def permission_denied(self, detail=None, action=None):
         """Raise `PermissionDenied` exception"""
