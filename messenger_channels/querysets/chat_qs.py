@@ -1,14 +1,10 @@
 from typing import Optional, Union
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import cache
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
-from django.conf import settings
 
+from core.cache import cache
 from conversation.models import Conversation, PrivateChat
 from conversation.querysets import get_or_create_pvchat
 from community.models import CommunityChat
-
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 
 def get_chat_ids(user_id) -> set:
@@ -37,15 +33,17 @@ def get_validated_chat_id(chat_id, user_id) -> Optional[int]:
     if chat_id < 0:
         return chat_id
 
-    cache_key = f'pv_{chat_id}_{user_id}'
-    cache_key = cache_key if cache_key in cache else f'pv_{user_id}_{chat_id}'
+    cache_key = cache.format_key(chat_id, user_id, key_name='pv_id')
+    if cache_key not in cache._cache:
+        cache_key = cache.format_key(user_id, chat_id, key_name='pv_id')
+
     pv_id = cache.get(cache_key)
-    pv_id = None
+
     if not pv_id:
         pv = get_or_create_pvchat(user_id, chat_id)
         if not pv:
             return
         pv_id = pv.pk
-        cache.set(cache_key, pv_id, timeout=CACHE_TTL)
+        cache.set(cache_key, pv_id)
 
     return pv_id

@@ -1,10 +1,7 @@
-from django.core.cache import cache
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
-from django.conf import settings
 from django.db.models import Q, QuerySet
-from message.models import Message, DeletedMessage
 
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
+from core.cache import cache
+from .models import Message, DeletedMessage
 
 
 def get_chat_messages(chat_id, user_id) -> QuerySet:
@@ -35,11 +32,13 @@ def delete_message(msg_id, user_id) -> tuple[DeletedMessage, bool]:
 
 def is_message_deleted(msg_id, user_id) -> bool:
     """Checks that the `msg_id` is deleted for `user_id`"""
-    cache_key = f"deleted_{msg_id}_{user_id}"
+    cache_key = cache.format_key(key_name='deleted_message',
+                                 msg_id=msg_id,
+                                 user_id=user_id)
     is_deleted = cache.get(cache_key)
     if is_deleted is None:
         is_deleted = DeletedMessage.objects.filter(
             message_id=msg_id, user_id=user_id).exists()
-        cache.set(cache_key, is_deleted, timeout=CACHE_TTL)
+        cache.set(cache_key, is_deleted)
 
     return is_deleted

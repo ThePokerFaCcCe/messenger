@@ -1,16 +1,12 @@
-from django.core.cache import cache
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
-from django.conf import settings
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver, Signal
 
+from core.cache import cache
 from core.signals import post_soft_delete
 from message.models import Message, DeletedMessage
 from message.serializers import MessageSerializer, DeletedMessageSerializer, HardDeletedMessageSerializer
 from messenger_channels.utils import send_message_event, send_event
 
-
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 pre_update_message = Signal(providing_args=['instance'])
 post_update_message = Signal(providing_args=['instance'])
@@ -42,8 +38,11 @@ def send_delete_message_to_channels(sender,
 def add_deleted_message_to_cache(sender,
                                  instance: DeletedMessage,
                                  created, **kwargs):
-    cache.set(f'deleted_{instance.message_id}_{instance.user_id}',
-              True, timeout=CACHE_TTL)
+
+    cache_key = cache.format_key(key_name='deleted_message',
+                                 msg_id=instance.message_id,
+                                 user_id=instance.user_id)
+    cache.set(cache_key, True)
 
 
 @receiver([post_soft_delete, post_delete], sender=Message)
