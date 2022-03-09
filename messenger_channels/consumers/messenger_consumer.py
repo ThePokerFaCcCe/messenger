@@ -7,7 +7,7 @@ from community.permissions import IsCommunityAdminMember
 from message.models import Message
 from message.serializers import MessageSerializer, DeletedMessageSerializer
 from message.serializers.utils import CONTENT_UPDATE_SERIALIZERS
-from message.queryset import delete_message
+from message.queryset import delete_message, is_message_deleted
 from ..querysets import (get_chat_ids, get_chat_content_type)
 from ..validators import validate_chat_id
 from ..signals import pre_update_message, post_update_message
@@ -31,6 +31,30 @@ class MessengerConsumer(GenericConsumer):
         super().connect()
         self.groups_join(get_chat_ids(self.scope.user))
         self.group_join(f'user_{self.scope.user.pk}')
+
+    def get_serializer_class(self, action, content):
+        if action == 'send_message':
+            return MessageSerializer
+        if action == 'delete_message':
+            return DeletedMessageSerializer
+        if action == 'update_message':
+            msg: Message = content.query.message_id_object
+            serializer = CONTENT_UPDATE_SERIALIZERS.get(msg.content_type)
+            if not serializer:
+                self.fail('cant_update', action=action)
+            return serializer
+        return super().get_serializer_class(action, content)
+
+    def get_permissions(self, action: str, content: dict):
+        if action == 'delete_message' and content.body.get('hard', False):
+            if content.query.chat_id < 0:
+                # It's used for Member permission
+                self.community_query_lookup = 'chat_id'
+                return [(IsCommunityAdminMember | IsOwnerOfItem)()]
+            return [IsOwnerOfItem()]
+        if action == 'update_message':
+            return [IsOwnerOfItem()]
+        return super().get_permissions(action, content)
 
     @options(query_params=CHATID_PARAM)
     def action_send_message(self, content, action, *args, **kwargs):
@@ -103,26 +127,9 @@ class MessengerConsumer(GenericConsumer):
 
         self.success(content, serializer.data)
 
-    def get_serializer_class(self, action, content):
-        if action == 'send_message':
-            return MessageSerializer
-        if action == 'delete_message':
-            return DeletedMessageSerializer
-        if action == 'update_message':
-            msg: Message = content.query.message_id_object
-            serializer = CONTENT_UPDATE_SERIALIZERS.get(msg.content_type)
-            if not serializer:
-                self.fail('cant_update', action=action)
-            return serializer
-        return super().get_serializer_class(action, content)
-
-    def get_permissions(self, action: str, content: dict):
-        if action == 'delete_message' and content.body.get('hard', False):
-            if content.query.chat_id < 0:
-                # It's used for Member permission
-                self.community_query_lookup = 'chat_id'
-                return [(IsCommunityAdminMember | IsOwnerOfItem)()]
-            return [IsOwnerOfItem()]
-        if action == 'update_message':
-            return [IsOwnerOfItem()]
-        return super().get_permissions(action, content)
+    def event_change_in_message(self, event):
+        """Sends message event only if `message` wasn't deleted for user"""
+        msg_id = event.get('msg_id')
+        if not is_message_deleted(msg_id, self.scope.user.pk):
+            print(msg_id, "isn't deleted  for user", self.scope.user.pk)
+            self.event_send_message({k: v for k, v in event.items() if k != 'msg_id'})
