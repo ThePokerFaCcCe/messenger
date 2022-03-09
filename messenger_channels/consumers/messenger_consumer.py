@@ -6,10 +6,11 @@ from core.permissions import IsOwnerOfItem
 from community.permissions import IsCommunityAdminMember
 from message.models import Message
 from message.serializers import MessageSerializer, DeletedMessageSerializer
+from message.serializers.utils import CONTENT_UPDATE_SERIALIZERS
 from message.queryset import delete_message
 from ..querysets import (get_chat_ids, get_chat_content_type)
 from ..validators import validate_chat_id
-
+from ..signals import pre_update_message, post_update_message
 CHATID_PARAM = {
     "chat_id":
         {
@@ -20,6 +21,9 @@ CHATID_PARAM = {
 
 
 class MessengerConsumer(GenericConsumer):
+    default_error_messages = {
+        'cant_update': "can't update this message"
+    }
     permission_classes = [IsAuthenticated]
 
     def connect(self):
@@ -54,7 +58,6 @@ class MessengerConsumer(GenericConsumer):
         "message_id": {
             'type': int,
             'queryset': Message.objects.all(),
-            'lookup': 'id',
             'depends': ['chat_id']
         },
         **CHATID_PARAM
@@ -65,21 +68,51 @@ class MessengerConsumer(GenericConsumer):
 
         if {"hard":True} was in body, the message will be deleted for all users
         '''
-        msg: Message = content.query.message_id_queryset.first()
+        msg: Message = content.query.message_id_object
         if content.body.get('hard', False):
-            # print('hard_deleted')
             msg.soft_delete()
         else:
-            # print('soft_deleted')
             delete_message(msg.pk, self.scope.user.pk)
 
         self.success(content)
+
+    @options(query_params={
+        "message_id": {
+            'type': int,
+            'queryset': Message.objects.select_related('sender')
+            .prefetch_related('content', 'chat').all(),
+            'depends': ['chat_id']
+        },
+        **CHATID_PARAM
+    })
+    def action_update_message(self, content, action, *args, **kwargs):
+        """
+        Update message content that user sent.
+        """
+        msg: Message = content.query.message_id_object
+
+        serializer = self.get_serializer(
+            action, content, instance=msg.content,
+            data=content.body)
+        self.validate_serializer(serializer, action)
+
+        pre_update_message.send(msg.__class__, instance=msg)
+        serializer.save()
+        post_update_message.send(msg.__class__, instance=msg)
+
+        self.success(content, serializer.data)
 
     def get_serializer_class(self, action, content):
         if action == 'send_message':
             return MessageSerializer
         if action == 'delete_message':
             return DeletedMessageSerializer
+        if action == 'update_message':
+            msg: Message = content.query.message_id_object
+            serializer = CONTENT_UPDATE_SERIALIZERS.get(msg.content_type)
+            if not serializer:
+                self.fail('cant_update', action=action)
+            return serializer
         return super().get_serializer_class(action, content)
 
     def get_permissions(self, action: str, content: dict):
@@ -88,5 +121,7 @@ class MessengerConsumer(GenericConsumer):
                 # It's used for Member permission
                 self.community_query_lookup = 'chat_id'
                 return [(IsCommunityAdminMember | IsOwnerOfItem)()]
-            return [IsOwnerOfItem]
+            return [IsOwnerOfItem()]
+        if action == 'update_message':
+            return [IsOwnerOfItem()]
         return super().get_permissions(action, content)
