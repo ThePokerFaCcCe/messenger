@@ -21,6 +21,10 @@ CONTENT_SERIALIZERS = {
     msg_types.TEXT: serializers.TextContentSerializer
 }
 
+CONTENT_UPDATE_SERIALIZERS = {
+    msg_types.TEXT: serializers.TextContentSerializer
+}
+
 
 def get_content_serializer(content_type: Message.ContentTypeChoices,
                            *serializer_args, **serializer_kwargs):
