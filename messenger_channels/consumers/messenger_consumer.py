@@ -131,5 +131,4 @@ class MessengerConsumer(GenericConsumer):
         """Sends message event only if `message` wasn't deleted for user"""
         msg_id = event.get('msg_id')
         if not is_message_deleted(msg_id, self.scope.user.pk):
-            print(msg_id, "isn't deleted  for user", self.scope.user.pk)
             self.event_send_message({k: v for k, v in event.items() if k != 'msg_id'})
