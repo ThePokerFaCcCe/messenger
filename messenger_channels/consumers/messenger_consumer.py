@@ -11,6 +11,7 @@ from message.queryset import delete_message
 from ..querysets import (get_chat_ids, get_chat_content_type)
 from ..validators import validate_chat_id
 from ..signals import pre_update_message, post_update_message
+
 CHATID_PARAM = {
     "chat_id":
         {
@@ -57,7 +58,7 @@ class MessengerConsumer(GenericConsumer):
     @options(query_params={
         "message_id": {
             'type': int,
-            'queryset': Message.objects.all(),
+            'queryset': Message.objects.filter_not_deleted(),
             'depends': ['chat_id']
         },
         **CHATID_PARAM
@@ -80,7 +81,7 @@ class MessengerConsumer(GenericConsumer):
         "message_id": {
             'type': int,
             'queryset': Message.objects.select_related('sender')
-            .prefetch_related('content', 'chat').all(),
+            .prefetch_related('content', 'chat').filter_not_deleted(),
             'depends': ['chat_id']
         },
         **CHATID_PARAM
