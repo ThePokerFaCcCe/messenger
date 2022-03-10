@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_nested',
     'drf_spectacular',
     'debug_toolbar',
+    'django_filters',
 
     'conversation',
     'community',

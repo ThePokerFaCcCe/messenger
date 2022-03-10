@@ -24,6 +24,7 @@ channels = "==3.0.*"
 channels-redis = "==3.3.*"
 dotmap = "*"
 django-redis = "*"
+django-filter = "*"
 
 [dev-packages]
 autopep8 = "*"
