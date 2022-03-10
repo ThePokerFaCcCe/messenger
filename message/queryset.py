@@ -14,7 +14,9 @@ def get_chat_messages(chat_id, user_id) -> QuerySet:
         message__chat_id=chat_id, user_id=user_id
     ).only('message_id').values_list('message_id')
 
-    return Message.objects.filter_not_deleted(
+    return Message.objects.select_related('sender')\
+        .prefetch_related('chat', 'content')\
+        .filter_not_deleted(
         ~Q(id__in=deleted_msgs),
         chat_id=chat_id,
     )
@@ -37,7 +39,7 @@ def is_message_deleted(msg_id, user_id) -> bool:
                                  user_id=user_id)
     is_deleted = cache.get(cache_key)
     if is_deleted is None:
-        is_deleted = DeletedMessage.objects.filter(
+        is_deleted = DeletedMessage.objects.only('id').filter(
             message_id=msg_id, user_id=user_id).exists()
         cache.set(cache_key, is_deleted)
 
