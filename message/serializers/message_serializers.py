@@ -1,4 +1,4 @@
-# from message.serializers.message_serializers import MessageSerializer as ms;m=ms(data={'content_type':'text','content':{'text':'hellob'}});m.is_valid(raise_exception=True)
+from copy import deepcopy  # Used for Fix RuntimeError: ...Serializer() cannot be re-used. Create a new instance.
 from django.db import transaction
 from rest_framework import serializers
 from generic_relations.relations import GenericRelatedField
@@ -11,14 +11,15 @@ from .utils import (MESSAGE_CHAT_GENERICS, MESSAGE_CONTENT_GENERICS,
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    chat = GenericRelatedField(MESSAGE_CHAT_GENERICS,
+    chat = GenericRelatedField(deepcopy(MESSAGE_CHAT_GENERICS),
                                read_only=True)
-    content = GenericRelatedField(MESSAGE_CONTENT_GENERICS)
+    content = GenericRelatedField(deepcopy(MESSAGE_CONTENT_GENERICS))
     sender = UserSerializer(read_only=True)
 
     class Meta:
         model = Message
         read_only_fields = [
+            'sent_at',
             'is_edited',
             'edited_at',
         ]
@@ -49,3 +50,19 @@ class MessageSerializer(serializers.ModelSerializer):
             kwargs['content'] = content
 
         return super().save(**kwargs)
+
+
+class MessageInfoSerializer(serializers.ModelSerializer):
+    content = GenericRelatedField(deepcopy(MESSAGE_CONTENT_GENERICS))
+    sender = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Message
+        fields = [
+            'id',
+            'chat_id',
+            'content_type',
+            'content',
+            'sent_at',
+            'sender',
+        ]
