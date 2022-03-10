@@ -24,7 +24,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
                   UserProfileMixin,
                   GUIDCRUDMixin,
                   viewsets.GenericViewSet):
-    queryset = User.objects.prefetch_related("_guid").all()
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_value_regex = r'[\d]+'
 

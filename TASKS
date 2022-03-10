@@ -10,8 +10,6 @@ add left group
 improve community schema
 improve conversation schema
 
-GUIDs on prefetch_related have bugs
-
 Add expire for invite links
 
 Create other message content models
