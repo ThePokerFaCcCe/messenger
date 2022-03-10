@@ -49,6 +49,9 @@ class Message(SoftDeleteMixin, models.Model):
             self.edited_at = timezone.now()
         return super().save(*args, **kwargs)
 
+    class Meta:
+        ordering = ['-id']
+
     # Custom message id for every chat idea :
     # message_id = models.PositiveBigIntegerField(
     #     _("Message id"), editable=False,
