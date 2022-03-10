@@ -45,3 +45,6 @@ class Cache:
         if key not in cache:
             return default
         return cache.get(key)
+
+    def delete(self, key):
+        return cache.delete(key)
