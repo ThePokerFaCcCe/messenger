@@ -4,7 +4,7 @@ from rest_framework import serializers
 from generic_relations.relations import GenericRelatedField
 
 from message.models import Message
-
+from core.utils import count_field
 from user.serializers import UserSerializer
 from .utils import (MESSAGE_CHAT_GENERICS, MESSAGE_CONTENT_GENERICS,
                     get_content_serializer)
@@ -15,6 +15,7 @@ class MessageSerializer(serializers.ModelSerializer):
                                read_only=True)
     content = GenericRelatedField(deepcopy(MESSAGE_CONTENT_GENERICS))
     sender = UserSerializer(read_only=True)
+    seen_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -29,7 +30,11 @@ class MessageSerializer(serializers.ModelSerializer):
             'content',
             'chat',
             'sender',
+            'seen_count',
         ]
+
+    def get_seen_count(self, instance) -> int:
+        return count_field(instance, "seen_users")
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -55,6 +60,7 @@ class MessageSerializer(serializers.ModelSerializer):
 class MessageInfoSerializer(serializers.ModelSerializer):
     content = GenericRelatedField(deepcopy(MESSAGE_CONTENT_GENERICS))
     sender = UserSerializer(read_only=True)
+    seen_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -65,4 +71,8 @@ class MessageInfoSerializer(serializers.ModelSerializer):
             'content',
             'sent_at',
             'sender',
+            'seen_count',
         ]
+
+    def get_seen_count(self, instance) -> int:
+        return count_field(instance, "seen_users")
