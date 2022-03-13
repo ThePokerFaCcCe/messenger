@@ -1,4 +1,4 @@
 from .text_content_serializer import TextContentSerializer
 from .message_serializers import MessageSerializer, MessageInfoSerializer
 from .deleted_msg_serializer import DeletedMessageSerializer, HardDeletedMessageSerializer
-from .seen_serializer import SeenUserSerializer
+from .seen_serializer import SeenUserSerializer, SeenInfoSerializer
