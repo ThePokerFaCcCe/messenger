@@ -16,3 +16,14 @@ def get_field_attr(model: Type[Model], field_name: str,
     """Get attr in field in model"""
     if (field := get_field(model, field_name)):
         return getattr(field, attr_name, default)
+
+
+def count_field(instance: Type[Model], field: str) -> int:
+    """
+    Returns count of a related field. if `{field}_count`
+    exists in instance, then it's value will be returned
+    """
+    count = getattr(instance, f'{field}_count', None)
+    if count is None:
+        count = getattr(instance, field).count()
+    return count

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from generic_relations.relations import GenericRelatedField
 
-from community.utils import count_members
+from core.utils import count_field
 from picturic.serializer_fields import PictureField
 from community.models import CommunityChat, GroupCommunity
 from user.serializers import UserSerializer
@@ -35,7 +35,7 @@ class CommunityChatSerializer(serializers.ModelSerializer):
         ] + read_only_fields
 
     def get_members_count(self, instance) -> int:
-        return count_members(instance)
+        return count_field(instance, 'members')
 
     def create(self, validated_data):
         ctype = validated_data.get('type')

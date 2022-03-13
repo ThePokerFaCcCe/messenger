@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from community.utils import count_members
+from core.utils import count_field
 from community.models import InviteLink
 import community.serializers.member_serializers as member_serializers
 import community.serializers.community_serializers as community_serializers
@@ -34,7 +34,7 @@ class InviteLinkSerializer(serializers.ModelSerializer):
         ]
 
     def get_members_count(self, instance) -> int:
-        return count_members(instance, 'members_used')
+        return count_field(instance, 'members_used')
 
 
 class InviteLinkMemberInfoSerializer(serializers.ModelSerializer):
@@ -47,4 +47,4 @@ class InviteLinkMemberInfoSerializer(serializers.ModelSerializer):
         ]
 
     def get_members_count(self, instance) -> int:
-        return count_members(instance, 'members_used')
+        return count_field(instance, 'members_used')
