@@ -1,4 +1,4 @@
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Count
 
 from core.cache import cache
 from .models import Message, DeletedMessage
@@ -16,6 +16,7 @@ def get_chat_messages(chat_id, user_id) -> QuerySet:
 
     return Message.objects.select_related('sender')\
         .prefetch_related('chat', 'content')\
+        .annotate(seen_users_count=Count("seen_users"))\
         .filter_not_deleted(
         ~Q(id__in=deleted_msgs),
         chat_id=chat_id,
