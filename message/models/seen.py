@@ -17,3 +17,4 @@ class Seen(models.Model):
 
     class Meta:
         ordering = ['-seen_at']
+        unique_together = ['user', 'message']
