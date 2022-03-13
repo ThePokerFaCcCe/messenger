@@ -4,7 +4,7 @@ from generic_channels.permissions import IsAuthenticated
 
 from core.permissions import IsOwnerOfItem
 from community.permissions import IsCommunityAdminMember
-from message.models import Message
+from message.models import Message, Seen
 from message.serializers import MessageSerializer, DeletedMessageSerializer
 from message.serializers.utils import CONTENT_UPDATE_SERIALIZERS
 from message.queryset import delete_message, is_message_deleted
@@ -23,7 +23,9 @@ CHATID_PARAM = {
 
 class MessengerConsumer(GenericConsumer):
     default_error_messages = {
-        'cant_update': "can't update this message"
+        'cant_update': "can't update this message",
+        'seen_already': "You've seen this message already",
+        'seen_self': "You can't seen your message",
     }
     permission_classes = [IsAuthenticated]
 
@@ -126,6 +128,31 @@ class MessengerConsumer(GenericConsumer):
         post_update_message.send(msg.__class__, instance=msg)
 
         self.success(content, serializer.data)
+
+    @options(query_params={
+        "message_id": {
+            'type': int,
+            'queryset': Message.objects.prefetch_related('chat')
+            .filter_not_deleted(),
+            'depends': ['chat_id']
+        },
+        **CHATID_PARAM
+    })
+    def action_seen_message(self, content, action, *args, **kwargs):
+        """Seen message by user"""
+        user = self.scope.user
+        message = content.query.message_id_object
+        if user.pk == message.sender_id:
+            self.fail('seen_self', action=action)
+
+        seen, created = Seen.objects.get_or_create(
+            message=message,
+            user=user,
+        )
+        if not created:
+            self.fail('seen_already', action=action)
+
+        self.success(content)
 
     def event_change_in_message(self, event):
         """Sends message event only if `message` wasn't deleted for user"""

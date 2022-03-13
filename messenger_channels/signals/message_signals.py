@@ -3,8 +3,9 @@ from django.dispatch import receiver, Signal
 
 from core.cache import cache
 from core.signals import post_soft_delete
-from message.models import Message, DeletedMessage
-from message.serializers import MessageSerializer, DeletedMessageSerializer, HardDeletedMessageSerializer
+from message.models import Message, DeletedMessage, Seen
+from message.serializers import (MessageSerializer, DeletedMessageSerializer,
+                                 HardDeletedMessageSerializer, SeenInfoSerializer)
 from messenger_channels.utils import send_message_event, send_event
 
 
@@ -72,3 +73,15 @@ def set_message_is_edited(sender, instance: Message, **_):
     if not instance.is_edited:
         instance.is_edited = True
         instance.save()
+
+
+@receiver(post_save, sender=Seen)
+def send_seen_message_to_channels(sender, instance: Seen, created, **_):
+    if created:
+        send_event(
+            group_name=instance.message.chat_id,
+            event_title="seen_message",
+            event_type='change_in_message',
+            message=SeenInfoSerializer(instance).data,
+            msg_id=instance.message_id,
+        )
