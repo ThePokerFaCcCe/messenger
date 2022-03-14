@@ -2,13 +2,14 @@ from generic_channels.consumers import GenericConsumer
 from generic_channels.decorators import options
 from generic_channels.permissions import IsAuthenticated
 
+from core.utils import get_chat_content_type
 from core.permissions import IsOwnerOfItem
 from community.permissions import IsCommunityAdminMember
 from message.models import Message, Seen
 from message.serializers import MessageSerializer, DeletedMessageSerializer
 from message.serializers.utils import CONTENT_UPDATE_SERIALIZERS
 from message.queryset import delete_message, is_message_deleted
-from ..querysets import (get_chat_ids, get_chat_content_type)
+from ..querysets import get_chat_ids
 from ..validators import validate_chat_id
 from ..signals import pre_update_message, post_update_message
 

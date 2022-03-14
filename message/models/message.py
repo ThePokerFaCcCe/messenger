@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
 from core.models.mixins import SoftDeleteMixin
+from core.utils import get_chat_content_type
 
 
 class Message(SoftDeleteMixin, models.Model):
@@ -48,6 +49,9 @@ class Message(SoftDeleteMixin, models.Model):
                                      auto_created=True)
 
     def save(self, *args, **kwargs):
+        if not (self.pk and self.chat_content_type):
+            self.chat_content_type = get_chat_content_type(self.chat_id)
+
         if self.is_edited and not self.edited_at:
             self.edited_at = timezone.now()
         return super().save(*args, **kwargs)

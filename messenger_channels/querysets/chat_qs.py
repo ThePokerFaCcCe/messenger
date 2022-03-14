@@ -1,10 +1,8 @@
-from typing import Optional, Union
-from django.contrib.contenttypes.models import ContentType
+from typing import Optional
 
 from core.cache import cache
 from conversation.models import Conversation, PrivateChat
 from conversation.querysets import get_or_create_pvchat
-from community.models import CommunityChat
 
 
 def get_pvchat_ids(user_id) -> set:
@@ -33,13 +31,6 @@ def get_chat_ids(user_id) -> set:
         .filter(user_id=user_id)
         .values_list('chat_id', flat=True)
     )
-
-
-def get_chat_content_type(chat_id: Union[int, str]) -> ContentType:
-    """Return chat's content type from `chat_id`"""
-    if int(chat_id) > 0:
-        return ContentType.objects.get_for_model(PrivateChat)
-    return ContentType.objects.get_for_model(CommunityChat)
 
 
 def get_validated_chat_id(chat_id, user_id) -> Optional[int]:
