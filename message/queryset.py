@@ -20,7 +20,7 @@ def get_chat_messages(chat_id, user_id) -> QuerySet:
         .filter_not_deleted(
         ~Q(id__in=deleted_msgs),
         chat_id=chat_id,
-    )
+    ).order_by('-id')
 
 
 def delete_message(msg_id, user_id) -> tuple[DeletedMessage, bool]:
