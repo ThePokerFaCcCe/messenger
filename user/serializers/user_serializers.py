@@ -51,10 +51,12 @@ class UserStaffUpdateSerializer(serializers.ModelSerializer):
 
 
 class UserLastSeenSerializer(serializers.ModelSerializer):
+    next_offline = serializers.DateTimeField()
 
     class Meta:
         model = User
         fields = [
+            'id',
             'is_online',
             'next_offline',
             'last_seen',
