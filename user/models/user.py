@@ -9,10 +9,10 @@ from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from datetime import datetime, timedelta
-
 from picturic.fields import PictureField
 from global_id.models.mixins import GUIDMixin
 
+from user.signals import user_online
 
 # class AutoFieldStartCountMixin:
 #     """Must be used when table is empty"""
@@ -135,7 +135,7 @@ class User(PermissionsMixin, GUIDMixin, Model):  # AutoFieldStartCountMixin,
 
     @property
     def full_name(self) -> str:
-        return f'{self.first_name} {self.last_name}'.strip()
+        return f'{self.first_name} {self.last_name or ""}'.strip()
 
     @property
     def is_online(self) -> bool:
@@ -177,6 +177,7 @@ class User(PermissionsMixin, GUIDMixin, Model):  # AutoFieldStartCountMixin,
         `**save_kwargs` Kwargs that need to pass when calling `.save()`
         """
         self.last_seen = timezone.now()
+        user_online.send(self.__class__, instance=self)
         if save:
             self.save(**save_kwargs)
 
