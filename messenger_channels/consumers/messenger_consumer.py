@@ -9,16 +9,21 @@ from message.models import Message, Seen
 from message.serializers import MessageSerializer, DeletedMessageSerializer
 from message.serializers.utils import CONTENT_UPDATE_SERIALIZERS
 from message.queryset import delete_message, is_message_deleted
+from message.tasks import forward_message
 from ..querysets import get_chat_ids
 from ..validators import validate_chat_id
 from ..signals import pre_update_message, post_update_message
 
+CHATID_OPTIONS = {
+    'type': int, 'regex': '^-?\d+$',
+    'validator': validate_chat_id,
+}
+MSGID_OPTIONS = {
+    'type': int,
+    'depends': ['chat_id'],
+}
 CHATID_PARAM = {
-    "chat_id":
-        {
-            'type': int, 'regex': '^-?\d+$',
-            'validator': validate_chat_id,
-        }
+    'chat_id': CHATID_OPTIONS,
 }
 
 
@@ -84,9 +89,8 @@ class MessengerConsumer(GenericConsumer):
 
     @options(query_params={
         "message_id": {
-            'type': int,
             'queryset': Message.objects.filter_not_deleted(),
-            'depends': ['chat_id']
+            **MSGID_OPTIONS
         },
         **CHATID_PARAM
     })
@@ -106,10 +110,9 @@ class MessengerConsumer(GenericConsumer):
 
     @options(query_params={
         "message_id": {
-            'type': int,
             'queryset': Message.objects.select_related('sender')
             .prefetch_related('content', 'chat').filter_not_deleted(),
-            'depends': ['chat_id']
+            **MSGID_OPTIONS
         },
         **CHATID_PARAM
     })
@@ -132,10 +135,9 @@ class MessengerConsumer(GenericConsumer):
 
     @options(query_params={
         "message_id": {
-            'type': int,
             'queryset': Message.objects.prefetch_related('chat')
             .filter_not_deleted(),
-            'depends': ['chat_id']
+            **MSGID_OPTIONS
         },
         **CHATID_PARAM
     })
@@ -158,6 +160,23 @@ class MessengerConsumer(GenericConsumer):
     def action_send_alive(self, content, action, *args, **kwargs):
         """Update user's `last_seen`"""
         self.scope.user.set_online(save=True)
+        self.success(content)
+
+    @options(query_params={
+        "message_id": {
+            'queryset': Message.objects.prefetch_related('chat')
+            .filter_not_deleted(),
+            **MSGID_OPTIONS
+        },
+        "to_chat_id": CHATID_OPTIONS,
+        **CHATID_PARAM
+    })
+    def action_forward_message(self, content, action, *args, **kwargs):
+        forward_message(
+            content.query.message_id_object,
+            content.query.to_chat_id,
+            self.scope.user
+        )
         self.success(content)
 
     def event_change_in_message(self, event):
