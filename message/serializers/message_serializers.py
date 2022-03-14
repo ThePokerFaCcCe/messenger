@@ -10,12 +10,25 @@ from .utils import (MESSAGE_CHAT_GENERICS, MESSAGE_CONTENT_GENERICS,
                     get_content_serializer)
 
 
+class ForwardedMessageInfoSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Message
+        fields = [
+            'chat_id',
+            'sent_at',
+            'sender',
+        ]
+
+
 class MessageSerializer(serializers.ModelSerializer):
     chat = GenericRelatedField(deepcopy(MESSAGE_CHAT_GENERICS),
                                read_only=True)
     content = GenericRelatedField(deepcopy(MESSAGE_CONTENT_GENERICS))
     sender = UserSerializer(read_only=True)
     seen_count = serializers.SerializerMethodField()
+    forwarded_from = ForwardedMessageInfoSerializer(read_only=True)
 
     class Meta:
         model = Message
@@ -31,6 +44,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'chat',
             'sender',
             'seen_count',
+            "forwarded_from",
         ]
 
     def get_seen_count(self, instance) -> int:
@@ -61,6 +75,7 @@ class MessageInfoSerializer(serializers.ModelSerializer):
     content = GenericRelatedField(deepcopy(MESSAGE_CONTENT_GENERICS))
     sender = UserSerializer(read_only=True)
     seen_count = serializers.SerializerMethodField()
+    forwarded_from = ForwardedMessageInfoSerializer(read_only=True)
 
     class Meta:
         model = Message
@@ -71,6 +86,7 @@ class MessageInfoSerializer(serializers.ModelSerializer):
             'content',
             'sent_at',
             'sender',
+            'forwarded_from',
             'seen_count',
         ]
 
