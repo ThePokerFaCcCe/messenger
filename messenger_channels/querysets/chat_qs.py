@@ -7,6 +7,24 @@ from conversation.querysets import get_or_create_pvchat
 from community.models import CommunityChat
 
 
+def get_pvchat_ids(user_id) -> set:
+    """Return list of pv ids that contains `user_id`"""
+
+    return set(
+        PrivateChat.objects.only('id')
+        .filter(users=user_id)
+        .values_list('id', flat=True)
+    )
+
+
+def get_pvchat_ids_cached(user_id) -> set:
+    """Return cached pvchat ids for `user_id`"""
+    key = cache.format_key(user_id, key_name="user_pvs")
+    return cache.get_or_set(
+        key, default_func=get_pvchat_ids, user_id=user_id
+    )
+
+
 def get_chat_ids(user_id) -> set:
     """Return list of chat ids inside of user conversations"""
     return set(

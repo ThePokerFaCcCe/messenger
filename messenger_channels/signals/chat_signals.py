@@ -3,6 +3,8 @@ from django.db.models.signals import m2m_changed
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
+from core.cache import cache
+from messenger_channels.querysets import get_pvchat_ids
 from conversation.models import PrivateChat
 
 
@@ -20,4 +22,10 @@ def add_new_conv_for_consumers(sender, instance: PrivateChat,
                     'type': "event.group_join",
                     'group_name': str(instance.pk)
                 }
+            )
+
+            # Update cached pvchats
+            cache.set(
+                cache.format_key(user_id, key_name='user_pvs'),
+                get_pvchat_ids(user_id)
             )
