@@ -39,6 +39,9 @@ class Message(SoftDeleteMixin, models.Model):
         fk_field="content_id"
     )
 
+    forwarded_from = models.ForeignKey(to='self', on_delete=models.SET_NULL, null=True,
+                                       related_name="forwarded_messages")
+
     is_edited = models.BooleanField(_("Is edited"), default=False)
     sent_at = models.DateTimeField(_("Sent at"), auto_now_add=True)
     edited_at = models.DateTimeField(_("Edited at"), null=True, blank=True,
