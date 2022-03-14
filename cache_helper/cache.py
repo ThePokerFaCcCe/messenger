@@ -1,3 +1,4 @@
+from typing import Callable
 from django.core.cache import cache
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.conf import settings
@@ -46,5 +47,30 @@ class Cache:
             return default
         return cache.get(key)
 
+    def get_or_set(self, key, default_value=None,
+                   default_func: Callable = None,
+                   timeout: int = CACHE_TTL,  **fkwargs):
+        """
+        something like `get_or_create()` in django.
+        if item not found, `default_func`'s return value or `default_value`
+        will be set for `key`. else the cache's value will be returned
+        """
+        if key in cache:
+            return self.get(key)
+
+        if default_func:
+            default_value = default_func(**fkwargs)
+        self.set(key, default_value, timeout)
+        return default_value
+
     def delete(self, key):
         return cache.delete(key)
+
+    # def append(self, key, value, timeout: int = CACHE_TTL):
+    #     items_list = self.get(key, [])
+    #     if not isinstance(items_list, list):
+    #         return False
+
+    #     items_list.append(value)
+    #     self.set(key, items_list, timeout)
+    #     return items_list
