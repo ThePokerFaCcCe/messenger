@@ -154,8 +154,17 @@ class MessengerConsumer(GenericConsumer):
 
         self.success(content)
 
+    def action_send_alive(self, content, action, *args, **kwargs):
+        """Update user's `last_seen`"""
+        self.scope.user.set_online(save=True)
+        self.success(content)
+
     def event_change_in_message(self, event):
         """Sends message event only if `message` wasn't deleted for user"""
         msg_id = event.get('msg_id')
         if not is_message_deleted(msg_id, self.scope.user.pk):
             self.event_send_message({k: v for k, v in event.items() if k != 'msg_id'})
+
+    def event_send_online(self, event):
+        if event['user']['id'] != self.scope.user.pk:
+            self.event_send_message(event)
