@@ -14,7 +14,7 @@ def get_chat_messages(chat_id, user_id) -> QuerySet:
         message__chat_id=chat_id, user_id=user_id
     ).only('message_id').values_list('message_id')
 
-    return Message.objects.select_related('sender')\
+    return Message.objects.select_related('sender', 'forwarded_from__sender')\
         .prefetch_related('chat', 'content')\
         .annotate(seen_users_count=Count("seen_users"))\
         .filter_not_deleted(
