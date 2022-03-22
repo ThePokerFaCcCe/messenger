@@ -1,27 +1,10 @@
-Read for websockets:
-https://channels.readthedocs.io/en/stable/introduction.html#what-is-a-consumer
-https://www.oddbird.net/2018/12/12/channels-and-drf/
-https://toplearn.com/courses/4371/%D8%A2%D9%85%D9%88%D8%B2%D8%B4-%D8%B3%D8%A7%D8%AE%D8%AA-%D9%BE%DB%8C%D8%A7%D9%85-%D8%B1%D8%B3%D8%A7%D9%86-%D8%A8%D8%A7-%D9%BE%D8%A7%DB%8C%D8%AA%D9%88%D9%86
-https://pythonrepo.com/repo/Bearle-django_private_chat2
-https://channels.readthedocs.io/en/stable/tutorial/part_2.html
-https://dev.to/earthcomfy/introduction-to-web-sockets-3n7m
-
-add left group
 improve community schema
 improve conversation schema
-
+encrypt messages
+Add guid, pvchat cache tests
 Add expire for invite links
 
 Create other message content models
-
-Add manytomany relation between conversation & message models
-
-Create message view
-
-Create seen model
-Add seen foreign key to message model
-
-Create seen view
 
 create user contacts model
 
