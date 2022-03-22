@@ -23,8 +23,9 @@ class AccessTokenAuthentication(TokenAuthentication):
 
     def authenticate(self, request):
         auth_result = super().authenticate(request)
-        update_token_information(
-            token=auth_result[-1],
-            request=request
-        )
+        if auth_result:
+            update_token_information(
+                token=auth_result[-1],
+                request=request
+            )
         return auth_result
