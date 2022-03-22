@@ -1,9 +1,12 @@
 from django.test.testcases import TestCase
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 from rest_framework.test import APITestCase
 from rest_framework import status
 
+from core.tests.mixins import ClearCacheMixin
 from auth_app.tests.utils import create_access
+from .models import FakeChat
 from .utils import (create_guid, GUIDViewCaller,
                     FakeChatViewCaller, create_fake_chat)
 
@@ -23,16 +26,16 @@ class GUIDModelTest(TestCase):
         ]
 
         valid_guids = [
-            'matin13_81khaleghi',
+            'matin_khaleghi1381',
             'matin1381kh',
             'matinkhaleghi',
         ]
         for guid in invalid_guids:
-            create_guid(guid=guid)
-            self.assertRaises(ValidationError)
+            with self.assertRaises(ValidationError):
+                create_guid(guid=guid).full_clean()
 
         for guid in valid_guids:
-            create_guid(guid=guid)
+            create_guid(guid=guid).full_clean()
 
 
 class GUIDViewTest(APITestCase):
@@ -52,8 +55,9 @@ class GUIDViewTest(APITestCase):
             allowed_status=status.HTTP_404_NOT_FOUND)
 
 
-class GUIDMixinTest(TestCase):
+class GUIDMixinTest(ClearCacheMixin, TestCase):
     def setUp(self) -> None:
+        super().setUp()
         self.fchat = create_fake_chat()
 
     def test_create_update_guid(self):
@@ -88,11 +92,40 @@ class GUIDMixinTest(TestCase):
         self.fchat.refresh_from_db()
         self.assertIsNone(self.fchat.guid)
 
+    def test_cache_works(self):
+        fchat = create_fake_chat()
+        fchat.guid = 'bigchatw'
+        fchat.save()
 
-class GUIDCRUDMixinTest(APITestCase):
+        with self.assertNumQueries(0):
+            fchat.guid
+
+        fchat = FakeChat.objects.get(pk=fchat.pk)
+
+        with self.assertNumQueries(0):
+            fchat.guid
+
+    def test_cache_update(self):
+        guid = 'anotherguid'
+
+        fchat = create_fake_chat()
+        fchat.guid = 'bigchatw'
+        fchat.save()
+
+        fchat.guid = guid
+        fchat.save()
+
+        self.assertEqual(fchat.guid, guid)
+        del fchat.guid
+
+        self.assertIsNone(fchat.guid)
+
+
+class GUIDCRUDMixinTest(ClearCacheMixin, APITestCase):
     caller: FakeChatViewCaller
 
     def setUp(self):
+        super().setUp()
         self.caller = FakeChatViewCaller(self.client)
 
     def test_get_guid(self):
@@ -125,5 +158,6 @@ class GUIDCRUDMixinTest(APITestCase):
         fc.guid = 'iamguid'
         fc.save()
         self.caller.delete__guid(pk=fc.pk)
+        cache.clear()
         fc.refresh_from_db()
         self.assertIsNone(fc.guid)

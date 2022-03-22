@@ -1,7 +1,7 @@
 improve community schema
 improve conversation schema
 encrypt messages
-Add guid, pvchat cache tests
+Add pvchat cache tests
 Add expire for invite links
 
 Create other message content models
