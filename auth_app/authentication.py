@@ -2,7 +2,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import TokenAuthentication
 
-from auth_app.models import Access
+from .models import Access
+from .utils import get_user_from_token, update_token_ip_address
 
 
 class AccessTokenAuthentication(TokenAuthentication):
@@ -15,9 +16,15 @@ class AccessTokenAuthentication(TokenAuthentication):
         if not token or token.is_token_expired:
             raise AuthenticationFailed(_('Invalid token.'))
 
-        if not token.user.is_active:
+        user = get_user_from_token(token)
+        if not user.is_active:
             raise AuthenticationFailed(_('User inactive or deleted.'))
-        user = token.user
-        setattr(user, 'used_access', token)
-        setattr(user, 'used_device', token.device)
         return (user, token)
+
+    def authenticate(self, request):
+        auth_result = super().authenticate(request)
+        update_token_ip_address(
+            token=auth_result[-1],
+            request=request
+        )
+        return auth_result

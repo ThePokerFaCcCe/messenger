@@ -1,14 +1,13 @@
 improve community schema
 improve conversation schema
+
 encrypt messages
-Add pvchat cache tests
+
 Add expire for invite links
 
 Create other message content models
 
 create user contacts model
-
-Add user's ip to access object
 
 Add custom background field for conversation?
 
