@@ -29,6 +29,7 @@ class DeviceViewSet(GetObjectByTokenMixin,
                     GetBodyTokenObjectMixin,
                     mixins.CreateModelMixin,
                     mixins.RetrieveModelMixin,
+                    mixins.ListModelMixin,
                     viewsets.GenericViewSet):
     queryset = Device.objects.all()  # .select_related('user')
 
@@ -38,6 +39,11 @@ class DeviceViewSet(GetObjectByTokenMixin,
     body_token_lookup = "verifycode_token"
     body_token_find_func = VerifyCode.objects.find_token
     body_token_find_func_kwargs = {'select': ['user']}
+
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            user=self.request.user
+        )
 
     def get_serializer_class(self):
         if self.action == 'create':
