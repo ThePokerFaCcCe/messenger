@@ -1,4 +1,4 @@
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets, permissions
 from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from user.schemas.views import DeviceCreateSchemaSerializer
@@ -55,3 +55,7 @@ class DeviceViewSet(GetObjectByTokenMixin,
         serializer.save(user=verifycode.user)
         verifycode.is_token_expired = True
         verifycode.save()
+
+    def get_permissions(self):
+        if self.action != 'create':
+            return [permissions.IsAuthenticated()]

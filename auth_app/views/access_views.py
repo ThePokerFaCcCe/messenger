@@ -1,4 +1,4 @@
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, permissions
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from auth_app.models import Access
@@ -56,3 +56,7 @@ class AccessViewSet(GetObjectByTokenMixin,
         serializer.save(user=device.user, device=device)
         device.is_token_expired = True
         device.save()
+
+    def get_permissions(self):
+        if self.action != 'create':
+            return [permissions.IsAuthenticated()]
