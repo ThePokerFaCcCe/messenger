@@ -77,11 +77,11 @@ class GUIDMixin(models.Model):
             elif (g_id := self.__update_guid):
                 g_id.save()
 
-            if (g_text := self.__new_guid_text != False):
-                cache.set(self.__cache_key, g_text)
+            if self.__new_guid_text != False:
+                cache.set(self.__cache_key, self.__new_guid_text)
             self.__clean_guid_attrs()
 
-            return r
+        return r
 
     class Meta:
         abstract = True
