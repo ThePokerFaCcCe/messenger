@@ -30,6 +30,7 @@ class AccessViewSet(GetObjectByTokenMixin,
                     GetBodyTokenObjectMixin,
                     mixins.CreateModelMixin,
                     mixins.RetrieveModelMixin,
+                    mixins.ListModelMixin,
                     viewsets.GenericViewSet):
     queryset = Access.objects.all()  # .select_related('device')
 
@@ -39,6 +40,11 @@ class AccessViewSet(GetObjectByTokenMixin,
     body_token_lookup = "device_token"
     body_token_find_func = Device.objects.find_token
     # body_token_find_func_kwargs = {'select': ['user']}
+
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            user=self.request.user
+        ).select_related("device")
 
     def get_serializer_class(self):
         if self.action == 'create':
