@@ -3,7 +3,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import TokenAuthentication
 
 from .models import Access
-from .utils import get_user_from_token, update_token_ip_address
+from .utils import get_user_from_token, update_token_information
 
 
 class AccessTokenAuthentication(TokenAuthentication):
@@ -23,7 +23,7 @@ class AccessTokenAuthentication(TokenAuthentication):
 
     def authenticate(self, request):
         auth_result = super().authenticate(request)
-        update_token_ip_address(
+        update_token_information(
             token=auth_result[-1],
             request=request
         )

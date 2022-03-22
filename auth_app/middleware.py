@@ -3,7 +3,7 @@ from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
 
 from .models import Access
-from .utils import get_user_from_token, update_token_ip_address
+from .utils import get_user_from_token, update_token_information
 
 
 @database_sync_to_async
@@ -31,7 +31,7 @@ class TokenAuthMiddleware(BaseMiddleware):
         elif (db_user := await get_user(token_key)):
             user, token = db_user
             await database_sync_to_async(
-                update_token_ip_address
+                update_token_information
             )(token, scope=scope)
 
         scope['user'] = user
