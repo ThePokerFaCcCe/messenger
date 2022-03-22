@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
-
+from django.utils import timezone
 from core.models.base import BaseToken
 from user.models import Device
 
@@ -22,3 +22,8 @@ class Access(BaseToken):
                              related_name="accesses")
     device = models.ForeignKey(to=Device, on_delete=models.CASCADE,
                                related_name="accesses")
+
+    def update_last_used(self, save=True, **save_kwargs):
+        self.last_used = timezone.now()
+        if save:
+            self.save(**save_kwargs)
