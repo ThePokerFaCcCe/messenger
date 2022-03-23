@@ -4,7 +4,7 @@ from rest_framework.test import APITransactionTestCase
 
 from user.models import Device
 from core.tests.mixins import TokenTest
-from auth_app.tests.utils import create_verifycode
+from auth_app.tests.utils import create_verifycode, create_access
 from .utils.callers import DeviceViewCaller
 from .utils.creators import create_device
 
@@ -47,9 +47,12 @@ class DeviceViewTest(APITransactionTestCase):
 
     def test_bad_token__retrieve(self):
         self.caller.retrieve__get(
+            create_access(activate_user=True).encrypted_token,
             token='Im#Bad',
             allowed_status=status.HTTP_404_NOT_FOUND
         )
 
     def test_success__retrieve(self):
-        self.caller.retrieve__get()
+        self.caller.retrieve__get(
+            create_access(activate_user=True).encrypted_token,
+        )

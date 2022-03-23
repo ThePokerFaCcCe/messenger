@@ -30,10 +30,11 @@ class DeviceViewCaller(BaseCaller):
             }
         )
 
-    def retrieve__get(self, token=None,
+    def retrieve__get(self, access_token, token=None,
                       allowed_status=status.HTTP_200_OK):
         """Calls device-detail view with POST method"""
         return self.assert_status_code(
             allowed_status, self.client.get,
             device_detail_url(token or create_device().encrypted_token),
+            **self.get_auth_header(access_token)
         )

@@ -27,11 +27,11 @@ class ConversationQuerySet(QuerySet):
                 communities.append(conv)
 
         prefetch_related_objects(
-            pvs, 'chat__users___guid', 'chat__creator___guid'
+            pvs, 'chat__users', 'chat__creator'
         )
 
         prefetch_related_objects(
-            communities, 'chat__creator___guid')
+            communities, 'chat__creator')
 
     def filter(self, *args, **kwargs):
         """if `.auto_prefetch_next` method was called before,

@@ -26,10 +26,11 @@ class AccessViewCaller(BaseCaller):
             }
         )
 
-    def retrieve__get(self, token=None,
+    def retrieve__get(self, access_token, token=None,
                       allowed_status=status.HTTP_200_OK):
         """Calls access-detail view with GET method"""
         return self.assert_status_code(
             allowed_status, self.client.get,
             access_detail_url(token or create_access().encrypted_token),
+            **self.get_auth_header(access_token)
         )

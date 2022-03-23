@@ -82,7 +82,7 @@ class DeviceViewTest(APITestCase):
         self.assertTrue(res.data['is_online'])
 
         self.assertEqual(
-            user.next_offline,
+            user.next_offline.isoformat(),
             res.data['next_offline']
         )
 
@@ -121,7 +121,7 @@ class DeviceViewTest(APITestCase):
         self.assertTrue(res.data['is_online'])
 
         self.assertEqual(
-            self.user.next_offline,
+            self.user.next_offline.isoformat(),
             res.data['next_offline']
         )
 

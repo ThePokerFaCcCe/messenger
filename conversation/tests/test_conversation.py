@@ -33,9 +33,6 @@ class ConversationModelTest(TestCase):
 
 class ConversationViewTest(APITestCase):
     caller: ConversationViewCaller
-    """
-delete
-"""
 
     def setUp(self):
         self.caller = ConversationViewCaller(self.client)
@@ -44,11 +41,14 @@ delete
                                     ).encrypted_token
 
     def test_list_all_convs(self):
-        convs = [create_conversation(user=self.user).pk,
-                 create_conversation(user=self.user).pk]
+        # Duplicated convs will be created when using `create_conversation`!
+        chats = [create_private_chat(creator=self.user).pk,
+                 create_private_chat(creator=self.user).pk]
 
         res = self.caller.list__get(self.access)
+        convs = Conversation.objects.filter(user=self.user).values_list('id', flat=True)
 
+        self.assertEqual(len(chats), len(convs))
         assert_items_are_same_as_data(items=convs, data=res.data)
 
     def test_list_not_show_others_conv(self):

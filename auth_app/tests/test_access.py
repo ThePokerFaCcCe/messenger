@@ -16,7 +16,7 @@ class AccessModelTest(TokenTest, TransactionTestCase):
         return create_access()
 
 
-class DeviceViewTest(APITransactionTestCase):
+class AccessViewTest(APITransactionTestCase):
     caller: AccessViewCaller
 
     def setUp(self):
@@ -41,11 +41,11 @@ class DeviceViewTest(APITransactionTestCase):
 
     def test_bad_token__retrieve(self):
         self.caller.retrieve__get(
+            create_access(activate_user=True).encrypted_token,
             token='Im#Bad',
             allowed_status=status.HTTP_404_NOT_FOUND
         )
 
     def test_success__retrieve(self):
-        token = create_access().encrypted_token
-        self.assertNumQueries(1, self.caller.retrieve__get,
-                              token=token)
+        token = create_access(activate_user=True).encrypted_token
+        self.caller.retrieve__get(token, token=token)
