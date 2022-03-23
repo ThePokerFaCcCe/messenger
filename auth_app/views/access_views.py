@@ -60,3 +60,4 @@ class AccessViewSet(GetObjectByTokenMixin,
     def get_permissions(self):
         if self.action != 'create':
             return [permissions.IsAuthenticated()]
+        return super().get_permissions()
