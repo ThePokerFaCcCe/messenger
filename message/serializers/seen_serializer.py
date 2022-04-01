@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
 from message.models import Seen
-from user.serializers import UserSerializer
+from user.serializers import UserInfoSerializer
 
 
 class SeenUserSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = UserInfoSerializer(read_only=True)
 
     class Meta:
         model = Seen
@@ -17,7 +17,7 @@ class SeenUserSerializer(serializers.ModelSerializer):
 
 
 class SeenInfoSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = UserInfoSerializer(read_only=True)
     chat_id = serializers.SerializerMethodField()
 
     class Meta:

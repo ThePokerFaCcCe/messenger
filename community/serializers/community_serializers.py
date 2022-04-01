@@ -4,7 +4,7 @@ from generic_relations.relations import GenericRelatedField
 from core.utils import count_field
 from picturic.serializer_fields import PictureField
 from community.models import CommunityChat, GroupCommunity
-from user.serializers import UserSerializer
+from user.serializers import UserInfoSerializer
 import community.serializers.group_serializers as gp_serializers
 
 
@@ -12,7 +12,7 @@ class CommunityChatSerializer(serializers.ModelSerializer):
     community = GenericRelatedField({
         GroupCommunity: gp_serializers.GroupCommunitySerializer()
     }, read_only=True)
-    creator = UserSerializer(read_only=True)
+    creator = UserInfoSerializer(read_only=True)
     profile_image = PictureField(read_only=True)
     members_count = serializers.SerializerMethodField()
 
@@ -49,7 +49,7 @@ class CommunityChatSerializer(serializers.ModelSerializer):
 
 
 class CommunityChatInfoSerializer(serializers.ModelSerializer):
-    creator = UserSerializer(read_only=True)
+    creator = UserInfoSerializer(read_only=True)
     profile_image = PictureField(read_only=True)
 
     class Meta:

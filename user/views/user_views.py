@@ -9,7 +9,8 @@ from drf_spectacular.utils import extend_schema_view
 from .mixins import UserProfileMixin
 from core.permissions import IsAdminUserOR, IsOwnerOfItem
 from user.schemas.views import USER_VIEW_SCHEMA
-from user.serializers import (UserSerializer,
+from user.serializers import (UserInfoSerializer,
+                              UserUpdateSerializer,
                               UserStaffUpdateSerializer,
                               UserLastSeenSerializer,
                               UserProfileSerializer)
@@ -25,13 +26,14 @@ class UserViewSet(mixins.RetrieveModelMixin,
                   GUIDCRUDMixin,
                   viewsets.GenericViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserInfoSerializer
     lookup_value_regex = r'[\d]+'
 
     def get_serializer_class(self):
-        if (self.action in ['update', 'partial_update']
-                and self.request.user.is_staff):
-            return UserStaffUpdateSerializer
+        if self.action in ['update', 'partial_update']:
+            if self.request.user.is_staff:
+                return UserStaffUpdateSerializer
+            return UserUpdateSerializer
         elif self.action == 'last_seen':
             return UserLastSeenSerializer
         elif self.action == 'profile_image':
@@ -40,10 +42,10 @@ class UserViewSet(mixins.RetrieveModelMixin,
 
     def get_permissions(self):
         if (self.action in ['update', 'partial_update']
-                or (self.action == 'profile_image'
-                    and self.request.method != 'GET'
-                    )
-            ):
+                    or (self.action == 'profile_image'
+                        and self.request.method != 'GET'
+                        )
+                ):
             return [perm() for perm in [IsOwnerOfItem | IsAdminUserOR]]
 
         return [permissions.IsAuthenticated()]
@@ -62,13 +64,15 @@ class SelfUserViewSet(mixins.RetrieveModelMixin,
                       UserProfileMixin,
                       GUIDCRUDMixin,
                       viewsets.GenericViewSet):
-    serializer_class = UserSerializer
+    serializer_class = UserInfoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return UserUpdateSerializer
         if self.action == 'send_alive':
             return UserLastSeenSerializer
-        elif self.action == 'profile_image':
+        if self.action == 'profile_image':
             return UserProfileSerializer
 
         return super().get_serializer_class()

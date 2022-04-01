@@ -1,7 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from user.serializers import UserSerializer
+from user.serializers import UserInfoSerializer
 from community.models import Member
 
 
@@ -12,7 +12,7 @@ common_fields = [
 
 
 class MemberInfoSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = UserInfoSerializer(read_only=True)
 
     class Meta:
         model = Member
@@ -20,7 +20,7 @@ class MemberInfoSerializer(serializers.ModelSerializer):
 
 
 class MemberSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = UserInfoSerializer(read_only=True)
 
     class Meta:
         model = Member

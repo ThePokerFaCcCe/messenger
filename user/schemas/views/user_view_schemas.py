@@ -1,10 +1,10 @@
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import serializers
-from user.serializers import UserStaffUpdateSerializer, UserSerializer
+from user.serializers import UserStaffUpdateSerializer, UserUpdateSerializer, UserInfoSerializer
 from core.schema_helper import schema_generator
 
 userstaff_meta = UserStaffUpdateSerializer.Meta
-user_meta = UserSerializer.Meta
+user_meta = UserUpdateSerializer.Meta
 
 
 class UserStaffUpdateRequestSchemaSerializer(
@@ -39,13 +39,13 @@ USER_UPDATE_REQUEST_EXAMPLE = OpenApiExample(
 USER_VIEW_SCHEMA = {
     "retrieve": extend_schema(
         description=("Show user information"),
-        responses={200: UserSerializer,
+        responses={200: UserInfoSerializer,
                    400: None, 404: None}
     ),
     "update": extend_schema(
         description=("Update user information"),
         examples=[USER_UPDATE_REQUEST_EXAMPLE, STAFF_UPDATE_REQUEST_EXAMPLE],
-        responses={200: UserSerializer,
+        responses={200: UserUpdateSerializer,
                    400: None, 404: None}
     )
 }

@@ -5,13 +5,13 @@ from generic_relations.relations import GenericRelatedField
 
 from message.models import Message
 from core.utils import count_field
-from user.serializers import UserSerializer
+from user.serializers import UserInfoSerializer
 from .utils import (MESSAGE_CHAT_GENERICS, MESSAGE_CONTENT_GENERICS,
                     get_content_serializer)
 
 
 class ForwardedMessageInfoSerializer(serializers.ModelSerializer):
-    sender = UserSerializer(read_only=True)
+    sender = UserInfoSerializer(read_only=True)
 
     class Meta:
         model = Message
@@ -26,7 +26,7 @@ class MessageSerializer(serializers.ModelSerializer):
     chat = GenericRelatedField(deepcopy(MESSAGE_CHAT_GENERICS),
                                read_only=True)
     content = GenericRelatedField(deepcopy(MESSAGE_CONTENT_GENERICS))
-    sender = UserSerializer(read_only=True)
+    sender = UserInfoSerializer(read_only=True)
     seen_count = serializers.SerializerMethodField()
     forwarded_from = ForwardedMessageInfoSerializer(read_only=True)
 
@@ -73,7 +73,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class MessageInfoSerializer(serializers.ModelSerializer):
     content = GenericRelatedField(deepcopy(MESSAGE_CONTENT_GENERICS))
-    sender = UserSerializer(read_only=True)
+    sender = UserInfoSerializer(read_only=True)
     seen_count = serializers.SerializerMethodField()
     forwarded_from = ForwardedMessageInfoSerializer(read_only=True)
 

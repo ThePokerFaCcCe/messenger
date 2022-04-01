@@ -97,7 +97,7 @@ INTERNAL_IPS = [  # It's for debug tool
 ]
 
 GLOBAL_ID_CHAT_SERIALIZERS = {
-    'user.models.User': 'user.serializers.UserSerializer',
+    'user.models.User': 'user.serializers.UserInfoSerializer',
 }
 
 MIDDLEWARE = [
