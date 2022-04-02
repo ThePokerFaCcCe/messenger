@@ -5,3 +5,4 @@ from .user_serializers import (UserUpdateSerializer,
                                UserStaffUpdateSerializer,
                                UserLastSeenSerializer,
                                UserProfileSerializer)
+from .contact_serializers import ContactCreateSerializer, ContactUpdateSerializer
