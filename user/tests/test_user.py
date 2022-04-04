@@ -7,7 +7,7 @@ from unittest.mock import patch
 import time
 
 from auth_app.tests.utils import create_access
-from .utils.creators import create_user
+from .utils.creators import create_user, create_contact
 from .utils.callers import UserViewCaller
 
 
@@ -22,7 +22,7 @@ class UserModelTest(TestCase):
             self.assertEqual(user.is_online, False)
 
 
-class DeviceViewTest(APITestCase):
+class UserViewTest(APITestCase):
     caller: UserViewCaller
 
     def setUp(self):
@@ -244,3 +244,15 @@ class DeviceViewTest(APITestCase):
         self.caller.profile_image__delete(
             self.staff_access,
         )
+
+    def test_contact_name_shows(self):
+        u2 = create_user()
+        res = self.caller.retrieve__get(self.access, u2.pk)
+        self.assertFalse(res.data['is_contact'])
+
+        first_name = 'john'
+        create_contact(self.user, u2, first_name=first_name)
+
+        res = self.caller.retrieve__get(self.access, u2.pk)
+        self.assertTrue(res.data['is_contact'])
+        self.assertEqual(res.data['first_name'], first_name)
