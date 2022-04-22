@@ -33,7 +33,7 @@ def decrypt_token_and_value(encrypt_key, encrypted_text: str
         return splitted_value
 
 
-def generate_token(instance=None, length=24, key=None, hasher: BasePasswordHasher = None):
+def generate_token(instance=None, length=24, hasher: BasePasswordHasher = None):
     """Return auto-generated hashed token and set `_original_token` 
     to unhashed token in instance if `instance` is passed.
 

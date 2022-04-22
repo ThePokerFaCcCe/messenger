@@ -50,7 +50,7 @@ class BaseToken(models.Model):
     def save(self, *args, **kwargs):
         add_token = self.should_generate_token()
         if add_token:
-            self.token = generate_token(instance=self)
+            self.token = generate_token(instance=self, length=self._token_length, hasher=self._hasher)
         super().save(*args, **kwargs)
         if add_token:
             self.__encrypt_original_token()
