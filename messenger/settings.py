@@ -1,3 +1,4 @@
+from datetime import timedelta
 import sys
 from celery.schedules import crontab
 from pathlib import Path
@@ -99,6 +100,8 @@ INTERNAL_IPS = [  # It's for debug tool
 GLOBAL_ID_CHAT_SERIALIZERS = {
     'user.models.User': 'user.serializers.UserInfoSerializer',
 }
+
+UPDATE_AUTH_TOKEN_INFO_INTERVAL = timedelta(seconds=60)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
