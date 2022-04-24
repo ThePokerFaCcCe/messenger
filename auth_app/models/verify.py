@@ -1,10 +1,7 @@
 from typing import Optional
 from cryptography.fernet import InvalidToken
 from django.conf import settings
-from django.db.models.deletion import CASCADE
-from django.db.models.fields.related import ForeignKey
-from django.db.models.base import Model
-from django.db.models.fields import BooleanField, DateTimeField, PositiveSmallIntegerField
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from encrypt_decrypt_fields import EncryptedBinaryField, Crypto
@@ -15,7 +12,7 @@ from core.models.base import BaseToken
 from .manager import VerifyCodeManager
 
 
-class VerifyCode(BaseToken, Model):
+class VerifyCode(BaseToken):
     _token_length = 42
     _encrypt_key = settings.VERIFYCODETOKEN_KEY
 
@@ -60,13 +57,13 @@ class VerifyCode(BaseToken, Model):
                                  key=settings.VERIFYCODE_KEY, editable=False,
                                  default=generate_code, db_index=True)
 
-    _tries = PositiveSmallIntegerField(default=0)
-    is_used = BooleanField(default=False, db_index=True)
+    _tries = models.PositiveSmallIntegerField(default=0)
+    is_used = models.BooleanField(default=False, db_index=True)
 
-    created_at = DateTimeField(_("Created at"), auto_now_add=True, editable=False)
+    created_at = models.DateTimeField(_("Created at"), auto_now_add=True, editable=False)
 
-    user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE,
-                      related_name='verify_codes')
+    user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='verify_codes')
 
     @property
     def code(self) -> Optional[str]:

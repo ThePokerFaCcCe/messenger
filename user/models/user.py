@@ -1,51 +1,17 @@
 from typing import Optional
-from django.contrib.auth.models import PermissionsMixin
-from django.core.mail import send_mail
-from django.db.models.base import Model
-from django.db.models.fields import BooleanField, CharField, DateTimeField, EmailField
-from django.db.models.manager import Manager
 from django.db import models
+from django.core.mail import send_mail
+from django.contrib.auth.models import PermissionsMixin
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from datetime import datetime, timedelta
+
 from picturic.fields import PictureField
 from global_id.models.mixins import GUIDMixin
-
 from user.signals import user_online
 
-# class AutoFieldStartCountMixin:
-#     """Must be used when table is empty"""
 
-#     start_count_value = 1
-
-#     def __init__(self, *args, **kwargs) -> None:
-#         super().__init__(*args, **kwargs)
-#         try:
-#             if not self.__class__.objects.count():
-#                 # I found some bugs here.
-#                 # if we just clear the table from DB,
-#                 # this code runs again!
-#                 # And then if we create new objects,
-#                 # their ID will start from start_count_value
-#                 self.update_auto_increment()
-#         except (ProgrammingError, OperationalError) as e:
-#             pass
-
-#     def update_auto_increment(self):
-#         """Update auto increment start count"""
-#         # https://stackoverflow.com/a/15317333/14034832
-#         from django.db import connection, transaction, router
-
-#         cursor = connection.cursor()
-#         with transaction.atomic():
-#             _router = settings.DATABASES[router.db_for_write(self.__class__)]['NAME']
-#             alter_str = "ALTER table {}.{} AUTO_INCREMENT={}".format(
-#                 _router, self._meta.db_table, self.start_count_value)
-#             cursor.execute(alter_str)
-
-
-class UserManager(Manager):
+class UserManager(models.Manager):
     def _create_user(self, email, **extra_fields):
         """
         Create and save a user.
@@ -79,9 +45,8 @@ class UserManager(Manager):
         return email.lower()
 
 
-class User(PermissionsMixin, GUIDMixin, Model):  # AutoFieldStartCountMixin,
-    start_count_value = 0  # 1000000  # for AutoFieldStartCountMixin
-    offline_after = timedelta(seconds=60)
+class User(PermissionsMixin, GUIDMixin, models.Model):
+    offline_after = timezone.timedelta(seconds=60)
     """After this time from user's `last_seen`, user's `is_online` will return `False`"""
 
     used_access = None
@@ -96,34 +61,34 @@ class User(PermissionsMixin, GUIDMixin, Model):  # AutoFieldStartCountMixin,
         USER = 'U', _("User")
         BOT = 'B', _("Bot")
 
-    type = CharField(_('User type'), max_length=1,
-                     choices=TypeChoices.choices,
-                     default=TypeChoices.USER)
+    type = models.CharField(_('User type'), max_length=1,
+                            choices=TypeChoices.choices,
+                            default=TypeChoices.USER)
 
-    first_name = CharField(_('first name'), max_length=40)
-    last_name = CharField(_('last name'), max_length=40, null=True)
-    bio = CharField(_('Biography'), max_length=90, null=True)
+    first_name = models.CharField(_('first name'), max_length=40)
+    last_name = models.CharField(_('last name'), max_length=40, null=True)
+    bio = models.CharField(_('Biography'), max_length=90, null=True)
     profile_image = PictureField(verbose_name=_("Profile image"),
                                  use_upload_to_func=True, null=True,
                                  make_thumbnail=True,
                                  thumbnail_size=(150, 150))
-    last_seen = DateTimeField(_("Last seen"), auto_now_add=True,
-                              help_text=_("Last time user was online"))
-    email = EmailField(_("email"), unique=True, db_index=True)
+    last_seen = models.DateTimeField(_("Last seen"), auto_now_add=True,
+                                     help_text=_("Last time user was online"))
+    email = models.EmailField(_("email"), unique=True, db_index=True)
 
-    is_staff = BooleanField(_("is staff"),
-                            help_text="Is user staff or not",
-                            default=False)
+    is_staff = models.BooleanField(_("is staff"),
+                                   help_text="Is user staff or not",
+                                   default=False)
 
-    is_active = BooleanField(_("is active"),
-                             help_text="Is user active or not",
-                             default=False)
+    is_active = models.BooleanField(_("is active"),
+                                    help_text="Is user active or not",
+                                    default=False)
 
-    is_scam = BooleanField(_("is scam"),
-                           help_text="Is user scam or not",
-                           default=False)
+    is_scam = models.BooleanField(_("is scam"),
+                                  help_text="Is user scam or not",
+                                  default=False)
 
-    created_at = DateTimeField(auto_now_add=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
 
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'email'
@@ -143,7 +108,7 @@ class User(PermissionsMixin, GUIDMixin, Model):  # AutoFieldStartCountMixin,
         return ((timezone.now() - self.last_seen) < self.offline_after)
 
     @property
-    def next_offline(self) -> Optional[datetime]:
+    def next_offline(self) -> Optional[timezone.datetime]:
         """Returns datetime that user will be offline after that
         or `None` if user is already offline"""
         if self.is_online:
